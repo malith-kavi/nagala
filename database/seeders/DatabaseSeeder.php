@@ -146,5 +146,7 @@ class DatabaseSeeder extends Seeder
         if (Setting::count() === 0) {
             Setting::put(Setting::DEFAULTS);
         }
+
+        $this->call(SampleImagesSeeder::class);
     }
 }

@@ -1,3 +1,4 @@
+import { mockupVw, StripLeaves } from '@/Components/Site/DesignFoliage';
 import { Leaf, MapPin, Mountain, Sprout } from 'lucide-react';
 
 const features = [
@@ -9,8 +10,9 @@ const features = [
 
 export default function FeatureStrip() {
     return (
-        <section className="relative z-10 bg-cream-50">
-            <div className="mx-auto grid max-w-6xl grid-cols-2 divide-stone-200 px-4 py-10 md:grid-cols-4 md:divide-x">
+        <section className="relative z-10 flex items-center overflow-hidden bg-[#fbf9f2]" style={{ minHeight: mockupVw(86) }}>
+            <StripLeaves />
+            <div className="relative mx-auto grid w-full max-w-6xl grid-cols-2 divide-stone-200 px-4 py-6 md:grid-cols-4 md:divide-x">
                 {features.map(({ icon: Icon, title, text }) => (
                     <div key={title} className="flex flex-col items-center px-4 py-4 text-center">
                         <Icon className="h-9 w-9 text-forest-700" strokeWidth={1.4} aria-hidden />

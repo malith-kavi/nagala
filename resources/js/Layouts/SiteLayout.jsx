@@ -1,4 +1,6 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
+import BirdsongToggle from '@/Components/Site/Birdsong';
+import { FooterLeaves } from '@/Components/Site/DesignFoliage';
 import FlashMessage from '@/Components/Site/FlashMessage';
 import { SocialIcon } from '@/Components/Site/SocialIcons';
 import { whatsappLink } from '@/lib/format';
@@ -100,8 +102,9 @@ function Footer() {
     ];
 
     return (
-        <footer className="leaf-bg text-cream-100">
-            <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-6 md:grid-cols-[auto_1fr_auto] md:items-center lg:px-8">
+        <footer className="relative overflow-hidden bg-[#082316] text-cream-100">
+            <FooterLeaves />
+            <div className="relative mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-6 md:grid-cols-[auto_1fr_auto] md:items-center lg:px-8">
                 <Link href={route('home')} className="justify-self-center md:justify-self-start">
                     <ApplicationLogo light className="scale-110" />
                 </Link>
@@ -145,8 +148,20 @@ function Footer() {
                     )}
                 </div>
             </div>
-            <div className="border-t border-white/10 py-4 text-center text-xs text-cream-200/70">
+            <div className="relative border-t border-white/10 py-4 text-center text-xs text-cream-200/70">
                 © {new Date().getFullYear()} {settings.site_name}. All rights reserved.
+                <span className="mt-1 block text-[10px] text-cream-200/50">
+                    Birdsong:{' '}
+                    <a
+                        href="https://commons.wikimedia.org/wiki/File:Dawn_chorus_at_Glencairnie_big_bungalow_Craigmore_DM.ogg"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="underline-offset-2 hover:underline"
+                    >
+                        &ldquo;Dawn chorus at Glencairnie&rdquo; by DivyaCM
+                    </a>
+                    , CC BY 4.0, edited
+                </span>
             </div>
         </footer>
     );
@@ -164,6 +179,7 @@ export default function SiteLayout({ title, children }) {
                 <Footer />
             </div>
             <FlashMessage />
+            <BirdsongToggle />
             {settings.whatsapp && (
                 <a
                     href={whatsappLink(settings.whatsapp, 'Hi! I would like to know more about Nagala Eco Cottage.')}

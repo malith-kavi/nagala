@@ -1,6 +1,7 @@
 import Carousel from '@/Components/Site/Carousel';
 import { CabanaCard, PackageCard, PlaceCard } from '@/Components/Site/Cards';
 import FeatureStrip from '@/Components/Site/FeatureStrip';
+import { BannerLeaves, CabanaLeaves, mockupVw } from '@/Components/Site/DesignFoliage';
 import ImageWithFallback from '@/Components/Site/ImageWithFallback';
 import SectionHeading from '@/Components/Site/SectionHeading';
 import VideoModal from '@/Components/Site/VideoModal';
@@ -53,14 +54,15 @@ export default function Home({ cabanas, places, packages }) {
             <FeatureStrip />
 
             {/* Cabanas */}
-            <section id="cabanas" className="bg-cream-100 py-20">
-                <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+            <section id="cabanas" className="relative overflow-hidden bg-gradient-to-b from-[#fbf9f2] to-[#f7f3e8] pb-4 pt-8">
+                <CabanaLeaves />
+                <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
                     <SectionHeading
                         eyebrow="Our Stay Options"
                         title="Our Eco Cabanas"
                         subtitle="Choose the perfect cabana for your stay surrounded by nature."
                     />
-                    <div className="mt-12">
+                    <div className="mt-8">
                         {cabanas.length > 3 ? (
                             <Carousel>
                                 {cabanas.map((c) => (
@@ -79,7 +81,10 @@ export default function Home({ cabanas, places, packages }) {
             </section>
 
             {/* Experience Nagala */}
-            <section className="leaf-bg relative overflow-hidden py-20">
+            <section
+                className="bg-[#0a1e12] bg-[url('/images/design/experience-bg.jpg')] bg-[length:100%_auto] bg-top bg-no-repeat pb-2 pt-6 md:bg-[length:100%_100%]"
+                style={{ minHeight: mockupVw(281) }}
+            >
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <SectionHeading
                         light
@@ -87,29 +92,27 @@ export default function Home({ cabanas, places, packages }) {
                         title="Experience Nagala"
                         subtitle="More than just a stay – discover nature, culture and adventure."
                     />
-                    <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                    <div className="mt-9 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                         {places.map((p) => (
                             <PlaceCard key={p.id} place={p} />
                         ))}
-                    </div>
-                    <div className="mt-10 text-center">
-                        <Link href={route('places.index')} className="btn-outline-light">
-                            Explore all places <ArrowRight className="h-4 w-4" />
-                        </Link>
                     </div>
                 </div>
             </section>
 
             {/* Packages */}
-            <section className="bg-forest-900 py-20">
-                <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+            <section
+                className="bg-[#0a2013] bg-[url('/images/design/packages-bg.jpg')] bg-[length:100%_auto] bg-top bg-no-repeat pb-3 pt-2 md:bg-[length:100%_100%]"
+                style={{ minHeight: mockupVw(237) }}
+            >
+                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-12">
                     <SectionHeading
                         light
                         eyebrow="Special Offers"
                         title="Packages & Offers"
                         subtitle="Special packages for couples, families and groups."
                     />
-                    <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                    <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                         {packages.map((p) => (
                             <PackageCard key={p.id} pkg={p} />
                         ))}
@@ -118,12 +121,16 @@ export default function Home({ cabanas, places, packages }) {
             </section>
 
             {/* Video banner */}
-            <section className="relative isolate flex min-h-[340px] items-center justify-center overflow-hidden py-20 text-center">
+            <section
+                className="relative isolate flex items-center justify-center overflow-hidden py-10 text-center"
+                style={{ minHeight: mockupVw(136) }}
+            >
                 <ImageWithFallback
                     src={settings.banner_image_url || settings.hero_image_url}
                     alt="Sunset over the mountains near Nagala"
                     className="absolute inset-0 -z-20 h-full w-full"
                 />
+                <BannerLeaves />
                 <div className="absolute inset-0 -z-10 bg-forest-950/50" />
                 <div className="px-4">
                     <p className="eyebrow">Natural Beauty • Culture • Adventure</p>

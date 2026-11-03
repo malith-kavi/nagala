@@ -1,9 +1,17 @@
 import Modal from '@/Components/Modal';
+import { holdBirdsong } from '@/Components/Site/Birdsong';
 import { youtubeEmbed } from '@/lib/format';
 import { X } from 'lucide-react';
+import { useEffect } from 'react';
 
 export default function VideoModal({ show, onClose, url }) {
     const src = youtubeEmbed(url);
+
+    useEffect(() => {
+        if (!show) return;
+        holdBirdsong(true);
+        return () => holdBirdsong(false);
+    }, [show]);
 
     return (
         <Modal show={show} onClose={onClose} maxWidth="2xl">

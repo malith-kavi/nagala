@@ -52,9 +52,14 @@ export default {
                     '0%': { opacity: 0, transform: 'translateY(16px)' },
                     '100%': { opacity: 1, transform: 'translateY(0)' },
                 },
+                birdsong: {
+                    '0%, 100%': { transform: 'scaleY(0.35)' },
+                    '50%': { transform: 'scaleY(1)' },
+                },
             },
             animation: {
                 'fade-up': 'fade-up 0.8s ease-out both',
+                birdsong: 'birdsong 0.9s ease-in-out infinite',
             },
         },
     },
