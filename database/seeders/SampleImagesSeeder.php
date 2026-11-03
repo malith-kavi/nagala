@@ -52,7 +52,8 @@ class SampleImagesSeeder extends Seeder
         ]);
 
         $settings = array_filter([
-            'hero_image' => Setting::get('hero_image') ? null : self::DIR.'hero.jpg',
+            'hero_image' => Setting::get('hero_image') ? null : '/images/hero_l.jpg',
+            'hero_image_dark' => Setting::get('hero_image_dark') ? null : '/images/hero_d.jpg',
             'banner_image' => Setting::get('banner_image') ? null : self::DIR.'banner.jpg',
         ]);
         if ($settings) {

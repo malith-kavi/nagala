@@ -24,8 +24,10 @@ export default function Settings({ settings }) {
         ...Object.fromEntries(text.map(([k]) => [k, settings[k] ?? ''])),
         map_embed_url: settings.map_embed_url ?? '',
         hero_image: null,
+        hero_image_dark: null,
         banner_image: null,
         remove_hero_image: false,
+        remove_hero_image_dark: false,
         remove_banner_image: false,
     });
 
@@ -55,6 +57,7 @@ export default function Settings({ settings }) {
                     <p className="text-sm text-stone-500">Large landscape photos work best (at least 1920 px wide).</p>
                     <div className="mt-4 grid gap-6 md:grid-cols-2">
                         {image('hero_image', 'Home hero background')}
+                        {image('hero_image_dark', 'Home hero background – dark mode (optional)')}
                         {image('banner_image', '"Unwind. Explore. Reconnect." banner & page headers')}
                     </div>
                 </section>

@@ -36,6 +36,7 @@ class SettingsController extends Controller
             'check_in_time' => ['nullable', 'string', 'max:20'],
             'check_out_time' => ['nullable', 'string', 'max:20'],
             'hero_image' => ['nullable', 'image', 'max:10240'],
+            'hero_image_dark' => ['nullable', 'image', 'max:10240'],
             'banner_image' => ['nullable', 'image', 'max:10240'],
         ], ['whatsapp.regex' => 'Use digits only with country code, e.g. 94771234567.']);
 

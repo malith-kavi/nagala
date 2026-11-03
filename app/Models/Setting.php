@@ -22,13 +22,14 @@ class Setting extends Model
         'youtube_url' => '',
         'video_url' => '',
         'hero_image' => '',
+        'hero_image_dark' => '',
         'banner_image' => '',
         'check_in_time' => '2:00 PM',
         'check_out_time' => '11:00 AM',
     ];
 
     /** Image settings stored as uploaded paths. */
-    public const IMAGE_KEYS = ['hero_image', 'banner_image'];
+    public const IMAGE_KEYS = ['hero_image', 'hero_image_dark', 'banner_image'];
 
     public $incrementing = false;
 

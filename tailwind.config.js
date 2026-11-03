@@ -56,10 +56,22 @@ export default {
                     '0%, 100%': { transform: 'scaleY(0.35)' },
                     '50%': { transform: 'scaleY(1)' },
                 },
+                // Slides a strip of two identical tiles by one tile, so the loop is seamless.
+                'cloud-flow': {
+                    '0%': { transform: 'translateX(0)' },
+                    '100%': { transform: 'translateX(-50%)' },
+                },
+                // Centred on the star's position while it brightens and fades.
+                twinkle: {
+                    '0%, 100%': { opacity: '0.1', transform: 'translate(-50%, -50%) scale(0.55)' },
+                    '50%': { opacity: '1', transform: 'translate(-50%, -50%) scale(1.1)' },
+                },
             },
             animation: {
                 'fade-up': 'fade-up 0.8s ease-out both',
                 birdsong: 'birdsong 0.9s ease-in-out infinite',
+                'cloud-flow': 'cloud-flow 120s linear infinite',
+                twinkle: 'twinkle 4s ease-in-out infinite',
             },
         },
     },

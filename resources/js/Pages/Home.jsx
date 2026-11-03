@@ -2,6 +2,8 @@ import Carousel from '@/Components/Site/Carousel';
 import { CabanaCard, PackageCard, PlaceCard } from '@/Components/Site/Cards';
 import FeatureStrip from '@/Components/Site/FeatureStrip';
 import { BannerLeaves, CabanaLeaves, mockupVw } from '@/Components/Site/DesignFoliage';
+import DriftingSky from '@/Components/Site/DriftingSky';
+import TwinklingStars from '@/Components/Site/TwinklingStars';
 import ImageWithFallback from '@/Components/Site/ImageWithFallback';
 import SectionHeading from '@/Components/Site/SectionHeading';
 import VideoModal from '@/Components/Site/VideoModal';
@@ -20,14 +22,22 @@ export default function Home({ cabanas, places, packages }) {
             <section className="relative isolate flex min-h-[88vh] items-center overflow-hidden">
                 <ImageWithFallback
                     src={settings.hero_image_url}
-                    alt="Nagala Eco Cottage cabanas beneath Nagala rock at sunset"
+                    darkSrc={settings.hero_image_dark_url}
+                    alt="Nagala Eco Cottage cabanas beneath Nagala rock"
                     className="absolute inset-0 -z-20 h-full w-full"
+                    loading="eager"
                 />
-                <div className="absolute inset-0 -z-10 bg-gradient-to-r from-forest-950/85 via-forest-950/45 to-transparent" />
-                <div className="absolute inset-x-0 bottom-0 -z-10 h-40 bg-gradient-to-t from-forest-950/60 to-transparent" />
+                <DriftingSky
+                    src={settings.hero_image_url}
+                    hiddenInDarkMode={Boolean(settings.hero_image_dark_url)}
+                    className="absolute inset-0 -z-20"
+                />
+                <TwinklingStars src={settings.hero_image_dark_url} className="absolute inset-0 -z-20" />
+                <div className="absolute inset-0 -z-10 bg-gradient-to-r from-forest-950/55 via-forest-950/20 to-transparent" />
+                <div className="absolute inset-x-0 bottom-0 -z-10 h-40 bg-gradient-to-t from-forest-950/35 to-transparent" />
 
                 <div className="mx-auto w-full max-w-7xl px-4 py-24 sm:px-6 lg:px-8">
-                    <div className="max-w-2xl animate-fade-up">
+                    <div className="max-w-2xl animate-fade-up [text-shadow:0_2px_18px_rgba(4,20,12,0.55)]">
                         <p className="text-xs font-semibold uppercase tracking-[0.3em] text-cream-100">Nagala Eco Cottage</p>
                         <h1 className="mt-4 font-serif text-5xl font-semibold leading-[1.05] text-white sm:text-6xl lg:text-7xl">
                             A Peaceful Getaway <br className="hidden sm:block" />

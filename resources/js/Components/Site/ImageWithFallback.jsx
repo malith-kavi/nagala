@@ -3,8 +3,9 @@ import { useState } from 'react';
 
 /**
  * Shows the uploaded photo, or a branded placeholder until the owner uploads one.
+ * An optional darkSrc is shown instead to visitors whose device is set to dark mode.
  */
-export default function ImageWithFallback({ src, alt = '', className = '', label }) {
+export default function ImageWithFallback({ src, darkSrc, alt = '', className = '', label, loading = 'lazy' }) {
     const [failed, setFailed] = useState(false);
 
     if (!src || failed) {
@@ -20,5 +21,14 @@ export default function ImageWithFallback({ src, alt = '', className = '', label
         );
     }
 
-    return <img src={src} alt={alt} loading="lazy" onError={() => setFailed(true)} className={`object-cover ${className}`} />;
+    const img = <img src={src} alt={alt} loading={loading} onError={() => setFailed(true)} className={`object-cover ${className}`} />;
+
+    if (!darkSrc) return img;
+
+    return (
+        <picture>
+            <source srcSet={darkSrc} media="(prefers-color-scheme: dark)" />
+            {img}
+        </picture>
+    );
 }
