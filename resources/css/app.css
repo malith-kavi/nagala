@@ -1,3 +1,62 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+    html {
+        scroll-behavior: smooth;
+    }
+}
+
+@layer components {
+    .eyebrow {
+        @apply text-[11px] font-semibold uppercase tracking-[0.25em] text-gold-500;
+    }
+
+    .btn {
+        @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-2.5 text-sm font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60;
+    }
+
+    .btn-primary {
+        @apply btn bg-forest-700 text-white hover:bg-forest-800 focus-visible:ring-forest-500;
+    }
+
+    .btn-leaf {
+        @apply btn bg-leaf-500 text-white shadow-lg shadow-leaf-500/30 hover:bg-leaf-600 focus-visible:ring-leaf-500;
+    }
+
+    .btn-outline-light {
+        @apply btn border border-white/80 text-white hover:bg-white/10 focus-visible:ring-white;
+    }
+
+    .btn-outline {
+        @apply btn border border-forest-700 text-forest-700 hover:bg-forest-50 focus-visible:ring-forest-500;
+    }
+
+    .card {
+        @apply overflow-hidden rounded-xl bg-white shadow-[0_8px_30px_rgba(20,56,32,0.10)];
+    }
+
+    .input {
+        @apply block w-full rounded-lg border-stone-300 text-sm shadow-sm focus:border-forest-500 focus:ring-forest-500;
+    }
+
+    .label {
+        @apply mb-1 block text-sm font-medium text-stone-700;
+    }
+
+    .leaf-bg {
+        background-color: #143820;
+        background-image:
+            radial-gradient(ellipse at 10% 0%, rgba(76, 175, 42, 0.18), transparent 50%),
+            radial-gradient(ellipse at 90% 100%, rgba(217, 184, 92, 0.12), transparent 50%);
+    }
+
+    .scrollbar-none {
+        scrollbar-width: none;
+    }
+
+    .scrollbar-none::-webkit-scrollbar {
+        display: none;
+    }
+}
