@@ -34,7 +34,7 @@ export default function Contact() {
 
             <section className="mx-auto grid max-w-6xl gap-10 px-4 py-16 sm:px-6 lg:grid-cols-[1fr_1.3fr] lg:px-8">
                 <div>
-                    <h2 className="font-serif text-3xl font-semibold text-forest-800">We're here to help</h2>
+                    <h2 className="font-display text-3xl font-semibold text-forest-800">We're here to help</h2>
                     <p className="mt-2 text-stone-600">Reach out by phone, WhatsApp or the form — we usually reply within a few hours.</p>
 
                     <ul className="mt-8 space-y-5">

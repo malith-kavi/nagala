@@ -104,7 +104,7 @@ export default function Book({ cabanas, packages, preselect }) {
                         {/* Step 1 */}
                         <fieldset className="card p-6 sm:p-8">
                             <legend className="sr-only">Stay details</legend>
-                            <h2 className="font-serif text-2xl font-semibold text-forest-800">1. Your stay</h2>
+                            <h2 className="font-display text-2xl font-semibold text-forest-800">1. Your stay</h2>
 
                             <div className="mt-5 grid gap-3 sm:grid-cols-3">
                                 {cabanas.map((c) => (
@@ -186,7 +186,7 @@ export default function Book({ cabanas, packages, preselect }) {
                         {/* Step 2 */}
                         <fieldset className="card p-6 sm:p-8">
                             <legend className="sr-only">Guest details</legend>
-                            <h2 className="font-serif text-2xl font-semibold text-forest-800">2. Your details</h2>
+                            <h2 className="font-display text-2xl font-semibold text-forest-800">2. Your details</h2>
                             <div className="mt-5 grid gap-4 sm:grid-cols-2">
                                 <Field label="Full name *" error={errors.name} className="sm:col-span-2">
                                     <input className="input" value={data.name} onChange={(e) => setData('name', e.target.value)} autoComplete="name" required />
@@ -212,7 +212,7 @@ export default function Book({ cabanas, packages, preselect }) {
 
                     {/* Summary */}
                     <aside className="card h-fit p-6 lg:sticky lg:top-24">
-                        <h2 className="flex items-center gap-2 font-serif text-2xl font-semibold text-forest-800">
+                        <h2 className="flex items-center gap-2 font-display text-2xl font-semibold text-forest-800">
                             <CalendarCheck className="h-6 w-6" /> Summary
                         </h2>
                         <dl className="mt-5 space-y-3 text-sm">

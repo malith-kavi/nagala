@@ -13,8 +13,8 @@ export default {
     theme: {
         extend: {
             fontFamily: {
-                sans: ['Figtree', ...defaultTheme.fontFamily.sans],
-                serif: ['"Cormorant Garamond"', ...defaultTheme.fontFamily.serif],
+                sans: ['Nunito', ...defaultTheme.fontFamily.sans],
+                display: ['Fredoka', 'Nunito', ...defaultTheme.fontFamily.sans],
             },
             colors: {
                 forest: {

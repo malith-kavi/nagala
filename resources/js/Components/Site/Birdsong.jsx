@@ -1,16 +1,21 @@
-import { Bird } from 'lucide-react';
+import { Bird, Moon } from 'lucide-react';
 import { useEffect, useState, useSyncExternalStore } from 'react';
 
-const SRC = '/audio/birdsong.mp3';
+// Birdsong goes with the sunset hero (light mode), the cricket-and-frog chorus with the night one.
+const TRACKS = { day: '/audio/birdsong.mp3', night: '/audio/night.mp3' };
 const VOLUME = 0.6;
 const PREF_KEY = 'nagala:birdsong';
 const HINT_KEY = 'nagala:birdsong-hint';
 
-// One player for the whole visit, so the birds keep singing across Inertia page changes.
-let audio = null;
+const darkQuery = typeof window !== 'undefined' ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+const scene = () => (darkQuery?.matches ? 'night' : 'day');
+
+// One player per sound for the whole visit, so it keeps playing across Inertia page changes.
+const players = {};
+const fades = {};
+let current = null;
 let playing = false;
 let held = false;
-let fadeFrame = null;
 const listeners = new Set();
 
 const storage = {
@@ -30,88 +35,126 @@ const storage = {
     },
 };
 
-function player() {
-    if (!audio) {
-        audio = new Audio(SRC);
+const notify = () => listeners.forEach((listener) => listener());
+
+function player(name) {
+    if (!players[name]) {
+        const audio = new Audio(TRACKS[name]);
         audio.loop = true;
         audio.preload = 'none';
         audio.volume = 0;
+        players[name] = audio;
     }
-    return audio;
+    return players[name];
 }
 
 function setPlaying(value) {
     playing = value;
-    listeners.forEach((notify) => notify());
+    notify();
 }
 
-function fadeTo(target, ms, done) {
-    cancelAnimationFrame(fadeFrame);
-    const a = player();
-    const from = a.volume;
+// Timer-driven rather than animation frames, which browsers may stall while nothing on screen moves.
+function fadeTo(name, target, ms, done) {
+    clearInterval(fades[name]);
+    const audio = player(name);
+    const from = audio.volume;
     const start = performance.now();
-    const step = (now) => {
-        const t = Math.min(1, (now - start) / ms);
-        a.volume = from + (target - from) * t;
-        if (t < 1) fadeFrame = requestAnimationFrame(step);
-        else done?.();
-    };
-    fadeFrame = requestAnimationFrame(step);
+    fades[name] = setInterval(() => {
+        const t = Math.min(1, (performance.now() - start) / ms);
+        audio.volume = from + (target - from) * t;
+        if (t < 1) return;
+        clearInterval(fades[name]);
+        done?.();
+    }, 40);
 }
 
+function fadeOut(name, ms) {
+    if (players[name] && !players[name].paused) fadeTo(name, 0, ms, () => players[name].pause());
+}
+
+// Plays the sound for the current colour scheme, fading it in.
 function resume(ms) {
-    const a = player();
-    a.volume = 0;
-    return a.play().then(() => fadeTo(VOLUME, ms));
+    current = scene();
+    const audio = player(current);
+    clearInterval(fades[current]);
+    audio.volume = 0;
+    return audio.play().then(() => fadeTo(current, VOLUME, ms));
 }
 
 function start() {
     setPlaying(true);
     if (held) return;
-    // Browsers refuse audio before the visitor has interacted with the page.
     resume(2500).catch(() => setPlaying(false));
 }
 
 function stop() {
     setPlaying(false);
-    if (audio) fadeTo(0, 800, () => audio.pause());
+    Object.keys(players).forEach((name) => fadeOut(name, 800));
 }
 
-// Let other sound (e.g. the video modal) take over, then bring the birds back.
+// Let other sound (e.g. the video modal) take over, then bring the background sound back.
 export function holdBirdsong(hold) {
     held = hold;
-    if (!playing || !audio) return;
-    if (hold) fadeTo(0, 600, () => audio.pause());
+    if (!playing) return;
+    if (hold) Object.keys(players).forEach((name) => fadeOut(name, 600));
     else resume(1500).catch(() => {});
 }
 
-if (typeof document !== 'undefined') {
+if (typeof window !== 'undefined') {
     // Silence a background tab; pick up again when the visitor returns.
     document.addEventListener('visibilitychange', () => {
-        if (!playing || held || !audio) return;
-        if (document.hidden) audio.pause();
-        else resume(1200).catch(() => {});
+        if (!playing || held) return;
+        if (document.hidden) {
+            Object.keys(players).forEach((name) => {
+                clearInterval(fades[name]);
+                players[name].pause();
+            });
+        } else {
+            resume(1200).catch(() => {});
+        }
     });
 
-    // Visitors who turned the birds on last time hear them again from their first click or key press.
-    if (storage.get(PREF_KEY) === 'on') {
-        const wake = (event) => {
-            window.removeEventListener('pointerdown', wake, true);
-            window.removeEventListener('keydown', wake, true);
-            if (!playing && !event.target.closest?.('[data-birdsong-toggle]')) start();
+    // Crossfade to the other sound when the device switches between light and dark mode.
+    darkQuery.addEventListener('change', () => {
+        notify();
+        if (!playing || held || document.hidden || current === scene()) return;
+        fadeOut(current, 2500);
+        resume(2500).catch(() => {});
+    });
+
+    // The sound is on unless the visitor turned it off. Browsers only allow sound once the visitor
+    // has interacted with the page, so if the first try is refused, try again on each click, tap or
+    // key press until it plays.
+    if (storage.get(PREF_KEY) !== 'off') {
+        const events = ['pointerdown', 'pointerup', 'touchend', 'keydown'];
+        const unlisten = () => events.forEach((type) => window.removeEventListener(type, wake, true));
+        const attempt = () => {
+            if (playing || storage.get(PREF_KEY) === 'off') return unlisten();
+            if (held || document.hidden) return;
+            resume(3000)
+                .then(() => {
+                    setPlaying(true);
+                    unlisten();
+                })
+                .catch(() => {});
         };
-        window.addEventListener('pointerdown', wake, true);
-        window.addEventListener('keydown', wake, true);
+        // The toggle and its hint handle their own clicks.
+        function wake(event) {
+            if (!event.target.closest?.('[data-birdsong-toggle]')) attempt();
+        }
+        events.forEach((type) => window.addEventListener(type, wake, true));
+        attempt();
     }
 }
 
-const subscribe = (notify) => {
-    listeners.add(notify);
-    return () => listeners.delete(notify);
+const subscribe = (listener) => {
+    listeners.add(listener);
+    return () => listeners.delete(listener);
 };
 
 export default function BirdsongToggle() {
     const isPlaying = useSyncExternalStore(subscribe, () => playing, () => false);
+    const isNight = useSyncExternalStore(subscribe, () => scene() === 'night', () => false);
     const [hint, setHint] = useState(false);
 
     useEffect(() => {
@@ -139,6 +182,10 @@ export default function BirdsongToggle() {
         }
     };
 
+    const Icon = isNight ? Moon : Bird;
+    const sound = isNight ? 'night sounds' : 'birdsong';
+    const label = isPlaying ? `Turn off ${sound}` : `Play ${sound}`;
+
     return (
         <div className="fixed bottom-5 left-5 z-40 flex items-center gap-3">
             <button
@@ -146,14 +193,14 @@ export default function BirdsongToggle() {
                 data-birdsong-toggle
                 onClick={toggle}
                 aria-pressed={isPlaying}
-                aria-label={isPlaying ? 'Turn off birdsong' : 'Play birdsong'}
-                title={isPlaying ? 'Turn off birdsong' : 'Play birdsong'}
+                aria-label={label}
+                title={label}
                 className={`group relative flex h-12 w-12 items-center justify-center rounded-full shadow-xl ring-1 backdrop-blur transition hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf-500 ${
                     isPlaying ? 'bg-forest-800 text-cream-50 ring-forest-700' : 'bg-white/90 text-forest-800 ring-stone-200'
                 }`}
             >
                 {isPlaying && <span className="absolute inset-0 rounded-full bg-leaf-500/40 motion-safe:animate-ping" aria-hidden />}
-                <Bird className="relative h-5 w-5" strokeWidth={1.8} aria-hidden />
+                <Icon className="relative h-5 w-5" strokeWidth={1.8} aria-hidden />
                 {isPlaying ? (
                     <span className="absolute -right-0.5 -top-0.5 flex h-4 items-end gap-[2px] rounded-full bg-gold-500 px-1 pb-[3px]" aria-hidden>
                         {[0, 1, 2].map((i) => (
@@ -169,13 +216,14 @@ export default function BirdsongToggle() {
                 )}
             </button>
 
-            {hint && (
+            {hint && !isPlaying && (
                 <button
                     type="button"
+                    data-birdsong-toggle
                     onClick={toggle}
                     className="animate-fade-up rounded-full bg-white/95 px-4 py-2 text-xs font-medium text-forest-800 shadow-lg ring-1 ring-stone-200 backdrop-blur hover:bg-white"
                 >
-                    Hear the birds of Nagala
+                    {isNight ? 'Hear the Nagala night' : 'Hear the birds of Nagala'}
                 </button>
             )}
         </div>

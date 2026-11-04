@@ -19,7 +19,7 @@ export default function PackageShow({ package: pkg, others }) {
                     <div>
                         <ImageWithFallback src={pkg.cover_image_url} alt={pkg.name} label={pkg.name} className="aspect-[16/9] w-full rounded-xl" />
                         <p className="eyebrow mt-8">Special Offer</p>
-                        <h1 className="mt-1 font-serif text-4xl font-semibold text-forest-800 sm:text-5xl">{pkg.name}</h1>
+                        <h1 className="mt-1 font-display text-4xl font-semibold text-forest-800 sm:text-5xl">{pkg.name}</h1>
                         {pkg.short_description && <p className="mt-3 text-lg text-stone-600">{pkg.short_description}</p>}
                         <Prose text={pkg.description} className="mt-6" />
                     </div>

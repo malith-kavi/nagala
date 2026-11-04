@@ -45,7 +45,7 @@ export default function CabanaShow({ cabana, others }) {
                 <div className="mt-10 grid gap-10 lg:grid-cols-[1fr_340px]">
                     <div>
                         <p className="eyebrow">Eco Cabana</p>
-                        <h1 className="mt-1 font-serif text-4xl font-semibold text-forest-800 sm:text-5xl">{cabana.name}</h1>
+                        <h1 className="mt-1 font-display text-4xl font-semibold text-forest-800 sm:text-5xl">{cabana.name}</h1>
                         {cabana.short_description && <p className="mt-3 text-lg text-stone-600">{cabana.short_description}</p>}
 
                         <div className="mt-6 flex flex-wrap gap-6 text-sm text-stone-700">
@@ -66,7 +66,7 @@ export default function CabanaShow({ cabana, others }) {
 
                         {cabana.features?.length > 0 && (
                             <>
-                                <h2 className="mt-10 font-serif text-2xl font-semibold text-forest-800">Amenities</h2>
+                                <h2 className="mt-10 font-display text-2xl font-semibold text-forest-800">Amenities</h2>
                                 <ul className="mt-4 grid gap-3 sm:grid-cols-2">
                                     {cabana.features.map((f) => (
                                         <li key={f} className="flex items-center gap-2 text-stone-700">

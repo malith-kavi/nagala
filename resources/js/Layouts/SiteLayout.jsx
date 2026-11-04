@@ -160,7 +160,16 @@ function Footer() {
                     >
                         &ldquo;Dawn chorus at Glencairnie&rdquo; by DivyaCM
                     </a>
-                    , CC BY 4.0, edited
+                    , CC BY 4.0, edited · Night sounds:{' '}
+                    <a
+                        href="https://commons.wikimedia.org/wiki/File:Nature_sounds_ambience_in_a_Dordogne_pond.ogg"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="underline-offset-2 hover:underline"
+                    >
+                        &ldquo;Nature sounds ambience in a Dordogne pond&rdquo; by Glaneur de sons
+                    </a>
+                    , CC BY 3.0, edited
                 </span>
             </div>
         </footer>

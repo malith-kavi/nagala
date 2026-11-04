@@ -16,7 +16,7 @@ export default function ImageWithFallback({ src, darkSrc, alt = '', className = 
                 className={`flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-forest-600 via-forest-700 to-forest-900 text-forest-100/70 ${className}`}
             >
                 <Leaf className="h-8 w-8" strokeWidth={1.5} aria-hidden />
-                {label && <span className="px-3 text-center font-serif text-sm">{label}</span>}
+                {label && <span className="px-3 text-center font-display text-sm">{label}</span>}
             </div>
         );
     }

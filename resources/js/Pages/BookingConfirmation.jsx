@@ -33,7 +33,7 @@ export default function BookingConfirmation({ booking }) {
                     <span className={`mx-auto flex h-16 w-16 items-center justify-center rounded-full ${s.bg}`}>
                         <Icon className={`h-9 w-9 ${s.color}`} />
                     </span>
-                    <h1 className="mt-4 font-serif text-3xl font-semibold text-forest-800 sm:text-4xl">{s.title}</h1>
+                    <h1 className="mt-4 font-display text-3xl font-semibold text-forest-800 sm:text-4xl">{s.title}</h1>
                     <p className="mt-2 text-stone-600">{s.text}</p>
                     <p className="mt-4 inline-block rounded-full bg-forest-50 px-4 py-1.5 font-mono text-sm font-semibold tracking-wider text-forest-800">
                         {booking.reference}

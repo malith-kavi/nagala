@@ -16,7 +16,7 @@ export default function PlaceShow({ place, others }) {
                 <ImageWithFallback src={place.cover_image_url} alt={place.name} label={place.name} className="mt-4 aspect-[16/8] w-full rounded-xl" />
 
                 <p className="eyebrow mt-8">Explore Around</p>
-                <h1 className="mt-1 font-serif text-4xl font-semibold text-forest-800 sm:text-5xl">{place.name}</h1>
+                <h1 className="mt-1 font-display text-4xl font-semibold text-forest-800 sm:text-5xl">{place.name}</h1>
                 <div className="mt-4 flex flex-wrap gap-6 text-sm text-stone-700">
                     {place.distance_km && (
                         <span className="flex items-center gap-2">
