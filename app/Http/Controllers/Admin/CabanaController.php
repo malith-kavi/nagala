@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Cabana;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -81,10 +82,12 @@ class CabanaController extends Controller
             'new_images' => ['nullable', 'array'],
             'new_images.*' => ['image', 'max:8192'],
             'remove_images' => ['nullable', 'array'],
+            'image_order' => ['nullable', 'array'],
+            'image_order.*' => ['string'],
         ]);
 
         $cabana->fill([
-            ...collect($data)->except(['cover_image', 'new_images', 'remove_images', 'slug', 'features'])->all(),
+            ...collect($data)->except(['cover_image', 'new_images', 'remove_images', 'image_order', 'slug', 'features'])->all(),
             'slug' => $this->uniqueSlug(Cabana::class, ($data['slug'] ?? null) ?: $data['name'], $cabana->id),
             'features' => $this->lines($data['features'] ?? []),
             'sort_order' => $data['sort_order'] ?? 0,
@@ -92,15 +95,32 @@ class CabanaController extends Controller
 
         $this->syncCoverImage($request, $cabana, 'cabanas');
 
-        $images = collect($cabana->images ?? []);
+        $kept = collect($cabana->images ?? []);
         $remove = $data['remove_images'] ?? [];
-        $images->filter(fn ($p) => in_array($p, $remove, true))->each(fn ($p) => $this->deleteStored($p));
-        $images = $images->reject(fn ($p) => in_array($p, $remove, true));
-        foreach ($request->file('new_images', []) as $file) {
-            $images->push($file->store('cabanas', 'public'));
-        }
-        $cabana->images = $images->values()->all();
+        $kept->filter(fn ($p) => in_array($p, $remove, true))->each(fn ($p) => $this->deleteStored($p));
+        $kept = $kept->reject(fn ($p) => in_array($p, $remove, true))->values();
+        $uploaded = collect($request->file('new_images', []))->map(fn ($file) => $file->store('cabanas', 'public'))->values();
+        $cabana->images = $this->orderImages($kept, $uploaded, $data['image_order'] ?? [])->all();
 
         $cabana->save();
+    }
+
+    /**
+     * Arrange photos in the order chosen in the admin form. Order entries are saved
+     * paths, or "new:<n>" for the n-th uploaded file. Anything the order leaves out is kept at the end.
+     */
+    private function orderImages(Collection $kept, Collection $uploaded, array $order): Collection
+    {
+        $ordered = collect($order)
+            ->map(fn ($entry) => str_starts_with($entry, 'new:')
+                ? $uploaded->get((int) substr($entry, 4))
+                : ($kept->contains($entry) ? $entry : null))
+            ->filter()
+            ->unique();
+
+        return $ordered
+            ->concat($kept->diff($ordered))
+            ->concat($uploaded->diff($ordered))
+            ->values();
     }
 }

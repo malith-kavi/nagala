@@ -59,4 +59,37 @@
     .scrollbar-none::-webkit-scrollbar {
         display: none;
     }
+
+    /* Scroll reveal, driven by <Reveal> setting data-reveal on an ancestor */
+    .reveal-item {
+        transition:
+            opacity 0.7s ease,
+            transform 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+            filter 0.7s ease;
+    }
+
+    [data-reveal='below'] .reveal-item {
+        opacity: 0;
+        transform: translateY(48px) scale(0.98);
+        filter: blur(4px);
+    }
+
+    [data-reveal='above'] .reveal-item {
+        opacity: 0;
+        transform: translateY(-48px) scale(0.98);
+        filter: blur(4px);
+    }
+
+    [data-reveal='shown'] .reveal-item {
+        transition-delay: var(--reveal-delay, 0ms);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        [data-reveal] .reveal-item {
+            opacity: 1;
+            transform: none;
+            filter: none;
+            transition: none;
+        }
+    }
 }

@@ -1,8 +1,10 @@
 import DeleteButton from '@/Components/Admin/DeleteButton';
 import Field from '@/Components/Site/Field';
 import AdminLayout from '@/Layouts/AdminLayout';
+import { IMAGE_ACCEPT, prepareImages } from '@/lib/prepareImage';
 import { router, useForm } from '@inertiajs/react';
 import { Upload } from 'lucide-react';
+import { useState } from 'react';
 
 function ImageRow({ image, categories }) {
     const update = (changes) =>
@@ -39,6 +41,7 @@ export default function Gallery({ images, categories }) {
         category: categories[0],
         caption: '',
     });
+    const [preparing, setPreparing] = useState(false);
 
     const submit = (e) => {
         e.preventDefault();
@@ -53,9 +56,14 @@ export default function Gallery({ images, categories }) {
                     <Field label="Photos (select multiple)" error={errors.images || Object.entries(errors).find(([k]) => k.startsWith('images.'))?.[1]}>
                         <input
                             type="file"
-                            accept="image/*"
+                            accept={IMAGE_ACCEPT}
                             multiple
-                            onChange={(e) => setData('images', [...e.target.files])}
+                            onChange={async (e) => {
+                                const picked = [...e.target.files];
+                                setPreparing(true);
+                                setData('images', await prepareImages(picked));
+                                setPreparing(false);
+                            }}
                             className="block w-full text-sm file:mr-3 file:rounded-full file:border-0 file:bg-forest-50 file:px-4 file:py-2 file:text-forest-700"
                         />
                     </Field>
@@ -71,8 +79,9 @@ export default function Gallery({ images, categories }) {
                     <Field label="Caption (optional)">
                         <input className="input" value={data.caption} onChange={(e) => setData('caption', e.target.value)} />
                     </Field>
-                    <button type="submit" disabled={processing || data.images.length === 0} className="btn-primary">
-                        <Upload className="h-4 w-4" /> {processing ? `Uploading ${progress?.percentage ?? 0}%` : `Upload ${data.images.length || ''}`}
+                    <button type="submit" disabled={processing || preparing || data.images.length === 0} className="btn-primary">
+                        <Upload className="h-4 w-4" />{' '}
+                        {preparing ? 'Preparing…' : processing ? `Uploading ${progress?.percentage ?? 0}%` : `Upload ${data.images.length || ''}`}
                     </button>
                 </div>
             </form>

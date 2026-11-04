@@ -1,9 +1,11 @@
+import { IMAGE_ACCEPT, prepareImage } from '@/lib/prepareImage';
 import { ImagePlus, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 /** Single-image upload with preview and remove option. */
 export default function ImageInput({ label, currentUrl, file, onFile, removed, onRemove, error, aspect = 'aspect-[4/3]' }) {
     const [preview, setPreview] = useState(null);
+    const [preparing, setPreparing] = useState(false);
 
     useEffect(() => {
         if (!file) return setPreview(null);
@@ -23,14 +25,23 @@ export default function ImageInput({ label, currentUrl, file, onFile, removed, o
                 ) : (
                     <div className="flex h-full flex-col items-center justify-center text-stone-400">
                         <ImagePlus className="h-8 w-8" />
-                        <span className="mt-1 text-xs">Click to upload (max 8 MB)</span>
+                        <span className="mt-1 text-xs">Click to upload (JPG, PNG, WebP or HEIC)</span>
                     </div>
+                )}
+                {preparing && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-white/80 text-sm font-medium text-stone-600">Preparing photo…</div>
                 )}
                 <input
                     type="file"
-                    accept="image/*"
+                    accept={IMAGE_ACCEPT}
                     className="absolute inset-0 cursor-pointer opacity-0"
-                    onChange={(e) => onFile(e.target.files[0] ?? null)}
+                    onChange={async (e) => {
+                        const picked = e.target.files[0];
+                        if (!picked) return onFile(null);
+                        setPreparing(true);
+                        onFile(await prepareImage(picked));
+                        setPreparing(false);
+                    }}
                     aria-label={label || 'Upload image'}
                 />
                 {shown && onRemove && (

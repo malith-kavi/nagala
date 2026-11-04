@@ -1,13 +1,13 @@
 import FormActions from '@/Components/Admin/FormActions';
 import ImageInput from '@/Components/Admin/ImageInput';
+import PhotoOrderInput from '@/Components/Admin/PhotoOrderInput';
 import Field from '@/Components/Site/Field';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { useForm } from '@inertiajs/react';
-import { ImagePlus, Trash2, Undo2 } from 'lucide-react';
 
 export default function CabanaForm({ cabana }) {
     const editing = Boolean(cabana);
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, post, processing, errors, transform } = useForm({
         _method: editing ? 'put' : 'post',
         name: cabana?.name ?? '',
         slug: cabana?.slug ?? '',
@@ -22,17 +22,25 @@ export default function CabanaForm({ cabana }) {
         sort_order: cabana?.sort_order ?? 0,
         cover_image: null,
         remove_cover_image: false,
-        new_images: [],
-        remove_images: [],
+        photos: (cabana?.images ?? []).map((path, i) => ({ key: path, path, url: cabana.image_urls[i], removed: false })),
     });
+
+    const setPhotos = (update) => setData((d) => ({ ...d, photos: update(d.photos) }));
 
     const submit = (e) => {
         e.preventDefault();
+        transform(({ photos, ...rest }) => {
+            const added = photos.filter((p) => p.file);
+            return {
+                ...rest,
+                new_images: added.map((p) => p.file),
+                remove_images: photos.filter((p) => p.path && p.removed).map((p) => p.path),
+                // Final order: saved photos by path, new uploads as "new:<index into new_images>".
+                image_order: photos.filter((p) => !p.removed).map((p) => (p.file ? `new:${added.indexOf(p)}` : p.path)),
+            };
+        });
         post(editing ? route('admin.cabanas.update', cabana.id) : route('admin.cabanas.store'), { forceFormData: true });
     };
-
-    const toggleRemove = (path) =>
-        setData('remove_images', data.remove_images.includes(path) ? data.remove_images.filter((p) => p !== path) : [...data.remove_images, path]);
 
     return (
         <AdminLayout title={editing ? `Edit ${cabana.name}` : 'New cabana'}>
@@ -86,41 +94,12 @@ export default function CabanaForm({ cabana }) {
                             error={errors.cover_image}
                         />
 
-                        <div>
-                            <span className="label">More photos</span>
-                            <div className="grid grid-cols-3 gap-2">
-                                {(cabana?.images ?? []).map((path, i) => {
-                                    const removed = data.remove_images.includes(path);
-                                    return (
-                                        <div key={path} className="relative">
-                                            <img src={cabana.image_urls[i]} alt="" className={`aspect-square w-full rounded object-cover ${removed ? 'opacity-30' : ''}`} />
-                                            <button
-                                                type="button"
-                                                onClick={() => toggleRemove(path)}
-                                                className="absolute right-1 top-1 rounded-full bg-white/90 p-1 shadow"
-                                                aria-label={removed ? 'Keep photo' : 'Remove photo'}
-                                            >
-                                                {removed ? <Undo2 className="h-3.5 w-3.5" /> : <Trash2 className="h-3.5 w-3.5 text-red-600" />}
-                                            </button>
-                                        </div>
-                                    );
-                                })}
-                                {data.new_images.map((f, i) => (
-                                    <img key={i} src={URL.createObjectURL(f)} alt="" className="aspect-square w-full rounded object-cover ring-2 ring-leaf-500" />
-                                ))}
-                                <label className="flex aspect-square cursor-pointer items-center justify-center rounded border-2 border-dashed border-stone-300 text-stone-400 hover:border-forest-400">
-                                    <ImagePlus className="h-6 w-6" />
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        multiple
-                                        className="hidden"
-                                        onChange={(e) => setData('new_images', [...data.new_images, ...e.target.files])}
-                                    />
-                                </label>
-                            </div>
-                            {Object.keys(errors).some((k) => k.startsWith('new_images')) && <p className="mt-1 text-sm text-red-600">One of the photos is invalid (images up to 8 MB).</p>}
-                        </div>
+                        <PhotoOrderInput
+                            label="More photos"
+                            photos={data.photos}
+                            setPhotos={setPhotos}
+                            error={Object.keys(errors).some((k) => k.startsWith('new_images')) && 'One of the photos is invalid (images up to 8 MB).'}
+                        />
                     </div>
                 </div>
 

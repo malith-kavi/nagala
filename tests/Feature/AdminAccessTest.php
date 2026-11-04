@@ -71,6 +71,33 @@ class AdminAccessTest extends TestCase
         $this->get(route('cabanas.show', 'tree-house'))->assertOk();
     }
 
+    public function test_admin_can_reorder_cabana_photos(): void
+    {
+        Storage::fake('public');
+        $admin = User::factory()->admin()->create();
+        $cabana = Cabana::create([
+            'name' => 'Tree House', 'slug' => 'tree-house', 'max_guests' => 2, 'price_per_night' => 15000, 'units' => 1,
+            'images' => ['cabanas/a.jpg', 'cabanas/b.jpg', 'cabanas/c.jpg'],
+        ]);
+
+        $this->actingAs($admin)->put(route('admin.cabanas.update', $cabana), [
+            'name' => 'Tree House',
+            'max_guests' => 2,
+            'price_per_night' => 15000,
+            'units' => 1,
+            'is_active' => true,
+            'new_images' => [UploadedFile::fake()->image('d.jpg')],
+            'remove_images' => ['cabanas/b.jpg'],
+            'image_order' => ['cabanas/c.jpg', 'new:0', 'cabanas/a.jpg'],
+        ])->assertRedirect(route('admin.cabanas.index'));
+
+        $images = $cabana->fresh()->images;
+        $this->assertCount(3, $images);
+        $this->assertSame('cabanas/c.jpg', $images[0]);
+        $this->assertNotContains($images[1], ['cabanas/a.jpg', 'cabanas/b.jpg', 'cabanas/c.jpg']);
+        $this->assertSame('cabanas/a.jpg', $images[2]);
+    }
+
     public function test_admin_can_upload_gallery_images_and_update_settings(): void
     {
         Storage::fake('public');

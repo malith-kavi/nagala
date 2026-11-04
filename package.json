@@ -23,6 +23,7 @@
         "vite": "^7.0.7"
     },
     "dependencies": {
+        "heic-to": "^1.6.7",
         "lucide-react": "^1.66.0"
     }
 }

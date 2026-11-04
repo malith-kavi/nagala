@@ -5,27 +5,20 @@ import { CabanaLeaves } from '@/Components/Site/DesignFoliage';
 import DriftingSky from '@/Components/Site/DriftingSky';
 import TwinklingStars from '@/Components/Site/TwinklingStars';
 import ImageWithFallback from '@/Components/Site/ImageWithFallback';
+import Reveal, { revealDelay } from '@/Components/Site/Reveal';
 import SectionHeading from '@/Components/Site/SectionHeading';
 import VideoModal from '@/Components/Site/VideoModal';
 import SiteLayout from '@/Layouts/SiteLayout';
 import { Link, usePage } from '@inertiajs/react';
 import { ArrowRight, CalendarDays, Play } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 // Each home section fills one screen below the 72px sticky navbar.
-const screenSection = 'flex min-h-[calc(100svh-72px)] snap-start flex-col justify-center';
-// Gentle block-wise scrolling: only snaps when a scroll ends near a section edge.
-const snapClasses = ['snap-y', 'snap-proximity', 'scroll-pt-[72px]'];
+const screenSection = 'flex min-h-[calc(100svh-72px)] flex-col justify-center';
 
 export default function Home({ cabanas, places, packages }) {
     const { settings } = usePage().props;
     const [video, setVideo] = useState(false);
-
-    useEffect(() => {
-        const html = document.documentElement;
-        html.classList.add(...snapClasses);
-        return () => html.classList.remove(...snapClasses);
-    }, []);
 
     return (
         <SiteLayout title="A Peaceful Getaway in Nature's Embrace">
@@ -79,7 +72,6 @@ export default function Home({ cabanas, places, packages }) {
                     <SectionHeading
                         eyebrow="Our Stay Options"
                         title="Our Eco Cabanas"
-                        subtitle="Choose the perfect cabana for your stay surrounded by nature."
                     />
                     <div className="mt-8">
                         {cabanas.length > 3 ? (
@@ -99,42 +91,55 @@ export default function Home({ cabanas, places, packages }) {
                 </div>
             </section>
 
-            {/* Experience Nagala + Packages share one continuous background photo */}
-            <div className="relative isolate bg-[#0a1e12] bg-[url('/images/design/nearby-bg.jpg')] bg-cover bg-center">
-                <div aria-hidden className="absolute inset-0 -z-10 bg-gradient-to-b from-[#0a1e12]/55 via-[#0a1e12]/35 to-[#0a1e12]/70" />
+            {/* Experience Nagala + Packages share one background photo that stays pinned while their content scrolls over it */}
+            <div className="relative isolate bg-[#0a1e12]">
+                <div
+                    aria-hidden
+                    className="sticky top-[72px] -z-10 mb-[calc(72px-100svh)] h-[calc(100svh-72px)] bg-[url('/images/design/nearby-bg.jpg')] bg-cover bg-center"
+                >
+                    <div className="absolute inset-0 bg-gradient-to-b from-[#0a1e12]/55 via-[#0a1e12]/35 to-[#0a1e12]/70" />
+                </div>
 
                 {/* Experience Nagala */}
                 <section className={`py-10 ${screenSection}`}>
-                    <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-                        <SectionHeading
-                            light
-                            eyebrow="Explore Around"
-                            title="Experience Nagala"
-                            subtitle="More than just a stay – discover nature, culture and adventure."
-                        />
+                    <Reveal className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+                        <div className="reveal-item">
+                            <SectionHeading
+                                light
+                                eyebrow="Explore Around"
+                                title="Experience Nagala"
+                                subtitle="More than just a stay – discover nature, culture and adventure."
+                            />
+                        </div>
                         <div className="mt-9 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                            {places.map((p) => (
-                                <PlaceCard key={p.id} place={p} />
+                            {places.map((p, i) => (
+                                <div key={p.id} className="reveal-item" style={revealDelay(150 + i * 100)}>
+                                    <PlaceCard place={p} className="h-full" />
+                                </div>
                             ))}
                         </div>
-                    </div>
+                    </Reveal>
                 </section>
 
                 {/* Packages */}
                 <section className={`py-10 ${screenSection}`}>
-                    <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-12">
-                        <SectionHeading
-                            light
-                            eyebrow="Special Offers"
-                            title="Packages & Offers"
-                            subtitle="Special packages for couples, families and groups."
-                        />
+                    <Reveal className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-12">
+                        <div className="reveal-item">
+                            <SectionHeading
+                                light
+                                eyebrow="Special Offers"
+                                title="Packages & Offers"
+                                subtitle="Special packages for couples, families and groups."
+                            />
+                        </div>
                         <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                            {packages.map((p) => (
-                                <PackageCard key={p.id} pkg={p} />
+                            {packages.map((p, i) => (
+                                <div key={p.id} className="reveal-item" style={revealDelay(150 + i * 100)}>
+                                    <PackageCard pkg={p} className="h-full" />
+                                </div>
                             ))}
                         </div>
-                    </div>
+                    </Reveal>
                 </section>
             </div>
 
