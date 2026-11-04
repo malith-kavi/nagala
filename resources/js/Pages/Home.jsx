@@ -1,7 +1,7 @@
 import Carousel from '@/Components/Site/Carousel';
 import { CabanaCard, PackageCard, PlaceCard } from '@/Components/Site/Cards';
 import FeatureStrip from '@/Components/Site/FeatureStrip';
-import { CabanaLeaves, mockupVw } from '@/Components/Site/DesignFoliage';
+import { CabanaLeaves } from '@/Components/Site/DesignFoliage';
 import DriftingSky from '@/Components/Site/DriftingSky';
 import TwinklingStars from '@/Components/Site/TwinklingStars';
 import ImageWithFallback from '@/Components/Site/ImageWithFallback';
@@ -10,16 +10,27 @@ import VideoModal from '@/Components/Site/VideoModal';
 import SiteLayout from '@/Layouts/SiteLayout';
 import { Link, usePage } from '@inertiajs/react';
 import { ArrowRight, CalendarDays, Play } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+
+// Each home section fills one screen below the 72px sticky navbar.
+const screenSection = 'flex min-h-[calc(100svh-72px)] snap-start flex-col justify-center';
+// Gentle block-wise scrolling: only snaps when a scroll ends near a section edge.
+const snapClasses = ['snap-y', 'snap-proximity', 'scroll-pt-[72px]'];
 
 export default function Home({ cabanas, places, packages }) {
     const { settings } = usePage().props;
     const [video, setVideo] = useState(false);
 
+    useEffect(() => {
+        const html = document.documentElement;
+        html.classList.add(...snapClasses);
+        return () => html.classList.remove(...snapClasses);
+    }, []);
+
     return (
         <SiteLayout title="A Peaceful Getaway in Nature's Embrace">
             {/* Hero */}
-            <section className="relative isolate flex min-h-[88vh] items-center overflow-hidden">
+            <section className={`relative isolate overflow-hidden ${screenSection}`}>
                 <ImageWithFallback
                     src={settings.hero_image_url}
                     darkSrc={settings.hero_image_dark_url}
@@ -62,9 +73,9 @@ export default function Home({ cabanas, places, packages }) {
 
 
             {/* Cabanas */}
-            <section id="cabanas" className="relative overflow-hidden bg-gradient-to-b from-[#fbf9f2] to-[#f7f3e8] pb-4 pt-8">
+            <section id="cabanas" className={`relative overflow-hidden bg-gradient-to-b from-[#fbf9f2] to-[#f7f3e8] py-10 ${screenSection}`}>
                 <CabanaLeaves />
-                <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+                <div className="relative mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8">
                     <SectionHeading
                         eyebrow="Our Stay Options"
                         title="Our Eco Cabanas"
@@ -93,8 +104,8 @@ export default function Home({ cabanas, places, packages }) {
                 <div aria-hidden className="absolute inset-0 -z-10 bg-gradient-to-b from-[#0a1e12]/55 via-[#0a1e12]/35 to-[#0a1e12]/70" />
 
                 {/* Experience Nagala */}
-                <section className="pb-2 pt-6" style={{ minHeight: mockupVw(281) }}>
-                    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <section className={`py-10 ${screenSection}`}>
+                    <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
                         <SectionHeading
                             light
                             eyebrow="Explore Around"
@@ -110,8 +121,8 @@ export default function Home({ cabanas, places, packages }) {
                 </section>
 
                 {/* Packages */}
-                <section className="pb-14 pt-2" style={{ minHeight: mockupVw(237) }}>
-                    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-12">
+                <section className={`py-10 ${screenSection}`}>
+                    <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-12">
                         <SectionHeading
                             light
                             eyebrow="Special Offers"
