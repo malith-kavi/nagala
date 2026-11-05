@@ -21,7 +21,7 @@ class CabanaFactory extends Factory
             'description' => fake()->paragraph(),
             'max_guests' => 3,
             'beds' => '1 Double Bed',
-            'features' => ['Private Veranda', 'Garden View'],
+            'features' => ['veranda', 'garden_view'],
             'price_per_night' => 8000,
             'units' => 1,
             'is_active' => true,

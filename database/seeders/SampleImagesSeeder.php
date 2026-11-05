@@ -45,10 +45,27 @@ class SampleImagesSeeder extends Seeder
             'family-full-board-5-guests' => 'food-rice-curry.jpg',
         ]);
 
-        $this->fillCovers(NearbyPlace::class, [
-            'yapahuwa-rock-fortress' => 'place-yapahuwa.jpg',
-            'hakwatunawa-lake' => 'place-hakwatunawa.jpg',
-        ]);
+        // Real photos of each place from Wikimedia Commons, credited on the place page.
+        $places = [
+            'siyambalangamuwa-wewa' => ['place-siyambalangamuwa.jpg', 'Nethma Bro, CC0'],
+            'reswehera-temple' => ['place-reswehera.jpg', 'Sherath2006, CC BY-SA 4.0'],
+            'kala-wewa' => ['place-kala-wewa.jpg', 'HutchND, CC BY-SA 4.0'],
+            'balalu-wewa' => ['place-balalu-wewa.jpg', 'Nuwaiza Naseem, CC BY-SA 4.0'],
+            'vijithapura-temple' => ['place-vijithapura.jpg', 'Pasanm79, CC BY-SA 3.0'],
+            'yapahuwa-rock-fortress' => ['place-yapahuwa.jpg', 'Dulakshi, CC BY-SA 4.0'],
+            'deduru-oya-reservoir' => ['place-deduru-oya.jpg', 'Imantha025, CC BY-SA 4.0'],
+        ];
+
+        $this->fillCovers(NearbyPlace::class, array_map(fn ($photo) => $photo[0], $places));
+
+        foreach ($places as $slug => [$file, $credit]) {
+            NearbyPlace::where('slug', $slug)->where('cover_image', self::DIR.$file)
+                ->update(['cover_credit' => "Photo: {$credit}, via Wikimedia Commons"]);
+        }
+
+        // The earlier Hakwatunawa cover was a photo of a different lake.
+        NearbyPlace::where('slug', 'hakwatunawa-lake')->where('cover_image', self::DIR.'place-hakwatunawa.jpg')
+            ->update(['cover_image' => null, 'cover_credit' => null]);
 
         $settings = array_filter([
             'hero_image' => Setting::get('hero_image') ? null : '/images/hero_l.jpg',

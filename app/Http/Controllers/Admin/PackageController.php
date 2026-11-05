@@ -8,6 +8,7 @@ use App\Models\Cabana;
 use App\Models\Package;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -27,6 +28,7 @@ class PackageController extends Controller
         return Inertia::render('Admin/Packages/Form', [
             'package' => null,
             'cabanas' => Cabana::orderBy('sort_order')->get(['id', 'name']),
+            'inclusionOptions' => Package::INCLUSIONS,
         ]);
     }
 
@@ -42,6 +44,7 @@ class PackageController extends Controller
         return Inertia::render('Admin/Packages/Form', [
             'package' => $package,
             'cabanas' => Cabana::orderBy('sort_order')->get(['id', 'name']),
+            'inclusionOptions' => Package::INCLUSIONS,
         ]);
     }
 
@@ -69,7 +72,9 @@ class PackageController extends Controller
             'description' => ['nullable', 'string', 'max:10000'],
             'nights' => ['required', 'integer', 'min:1', 'max:30'],
             'guests' => ['required', 'integer', 'min:1', 'max:20'],
-            'inclusions' => ['nullable'],
+            'inclusions' => ['nullable', 'array'],
+            // Older free-text entries already on this package may stay until the admin unticks them.
+            'inclusions.*' => ['string', Rule::in([...array_keys(Package::INCLUSIONS), ...($package->inclusions ?? [])])],
             'price' => ['required', 'integer', 'min:0'],
             'cabana_id' => ['nullable', 'exists:cabanas,id'],
             'is_active' => ['boolean'],
@@ -80,7 +85,7 @@ class PackageController extends Controller
         $package->fill([
             ...collect($data)->except(['cover_image', 'slug', 'inclusions'])->all(),
             'slug' => $this->uniqueSlug(Package::class, ($data['slug'] ?? null) ?: $data['name'], $package->id),
-            'inclusions' => $this->lines($data['inclusions'] ?? []),
+            'inclusions' => Package::orderInclusions($data['inclusions'] ?? []),
             'sort_order' => $data['sort_order'] ?? 0,
         ]);
 

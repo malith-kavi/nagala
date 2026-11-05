@@ -1,10 +1,11 @@
+import { Amenity } from '@/Components/Site/Amenity';
 import { PlaceCard } from '@/Components/Site/Cards';
 import ImageWithFallback from '@/Components/Site/ImageWithFallback';
 import Prose from '@/Components/Site/Prose';
 import SectionHeading from '@/Components/Site/SectionHeading';
 import SiteLayout from '@/Layouts/SiteLayout';
 import { Link } from '@inertiajs/react';
-import { ArrowLeft, CalendarDays, Clock, ExternalLink, MapPin } from 'lucide-react';
+import { ArrowLeft, CalendarDays, Car, ExternalLink, MapPin } from 'lucide-react';
 
 export default function PlaceShow({ place, others }) {
     return (
@@ -14,19 +15,20 @@ export default function PlaceShow({ place, others }) {
                     <ArrowLeft className="h-4 w-4" /> All nearby places
                 </Link>
                 <ImageWithFallback src={place.cover_image_url} alt={place.name} label={place.name} className="mt-4 aspect-[16/8] w-full rounded-xl" />
+                {place.cover_image_url && place.cover_credit && <p className="mt-2 text-right text-xs text-stone-500">{place.cover_credit}</p>}
 
                 <p className="eyebrow mt-8">Explore Around</p>
                 <h1 className="mt-1 font-display text-4xl font-semibold text-forest-800 sm:text-5xl">{place.name}</h1>
-                <div className="mt-4 flex flex-wrap gap-6 text-sm text-stone-700">
+                <div className="mt-4 flex flex-wrap gap-6 text-sm">
                     {place.distance_km && (
-                        <span className="flex items-center gap-2">
-                            <MapPin className="h-4 w-4 text-gold-600" /> {place.distance_km} km from the cottage
-                        </span>
+                        <Amenity as="span" icon={MapPin}>
+                            {place.distance_km} km from the cottage
+                        </Amenity>
                     )}
                     {place.travel_minutes && (
-                        <span className="flex items-center gap-2">
-                            <Clock className="h-4 w-4 text-gold-600" /> About {place.travel_minutes} min drive
-                        </span>
+                        <Amenity as="span" icon={Car}>
+                            About {place.travel_minutes} min drive
+                        </Amenity>
                     )}
                 </div>
 

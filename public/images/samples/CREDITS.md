@@ -3,6 +3,9 @@
 Placeholder photos for local development and design review, from Wikimedia Commons.
 Replace them with real Nagala Eco Cottage photos via the admin panel before launch.
 
+The nearby place covers (`place-*.jpg`, except `place-hakwatunawa.jpg`, `place-nikawewa.jpg` and `place-village.jpg`)
+are real photos of each place, resized for the web, and are credited under the photo on each place page.
+
 | File | Source | Author | License |
 |---|---|---|---|
 | `hero.jpg` | [File:DSC 8553 A tranquil tropical resort pond surrounded by thatched-roof pavilions palm trees and decorative white heron statues reflected in the calm water.jpg](https://commons.wikimedia.org/wiki/File:DSC_8553_A_tranquil_tropical_resort_pond_surrounded_by_thatched-roof_pavilions_palm_trees_and_decorative_white_heron_statues_reflected_in_the_calm_water.jpg) | PattayaPatrol | CC BY-SA 4.0 |
@@ -14,6 +17,12 @@ Replace them with real Nagala Eco Cottage photos via the admin panel before laun
 | `cabana-veranda.jpg` | [File:Cabana (structure).jpg](https://commons.wikimedia.org/wiki/File:Cabana_(structure).jpg) | DickClarkMises at English Wikipedia | Public domain |
 | `cabana-garden.jpg` | [File:Ecolodge Pan Hou Village (3).jpg](https://commons.wikimedia.org/wiki/File:Ecolodge_Pan_Hou_Village_(3).jpg) | Ji-Elle | CC BY-SA 4.0 |
 | `place-yapahuwa.jpg` | [File:Yapahuwa Rock Fortress.jpg](https://commons.wikimedia.org/wiki/File:Yapahuwa_Rock_Fortress.jpg) | Dulakshi | CC BY-SA 4.0 |
+| `place-siyambalangamuwa.jpg` | [File:Usgala Siyabhalangamuwa Wewa.jpg](https://commons.wikimedia.org/wiki/File:Usgala_Siyabhalangamuwa_Wewa.jpg) | Nethma Bro | CC0 |
+| `place-reswehera.jpg` | [File:Raswehera Buddha Statue.jpg](https://commons.wikimedia.org/wiki/File:Raswehera_Buddha_Statue.jpg) | Sherath2006 | CC BY-SA 4.0 |
+| `place-kala-wewa.jpg` | [File:Kala Wewa Sri Lanka.jpg](https://commons.wikimedia.org/wiki/File:Kala_Wewa_Sri_Lanka.jpg) | HutchND | CC BY-SA 4.0 |
+| `place-balalu-wewa.jpg` | [File:Kala wewa tank.jpg](https://commons.wikimedia.org/wiki/File:Kala_wewa_tank.jpg) | Nuwaiza Naseem | CC BY-SA 4.0 |
+| `place-vijithapura.jpg` | [File:KaduGaGala.jpg](https://commons.wikimedia.org/wiki/File:KaduGaGala.jpg) | Pasanm79 | CC BY-SA 3.0 |
+| `place-deduru-oya.jpg` | [File:Deduru Oya Reservoir, Kurunegala, Sri Lanka.jpg](https://commons.wikimedia.org/wiki/File:Deduru_Oya_Reservoir,_Kurunegala,_Sri_Lanka.jpg) | Imantha025 | CC BY-SA 4.0 |
 | `place-hakwatunawa.jpg` | [File:Tissa Lake Sri Lanka.jpg](https://commons.wikimedia.org/wiki/File:Tissa_Lake_Sri_Lanka.jpg) | Kasuni Amarasinghe | CC BY-SA 4.0 |
 | `place-nikawewa.jpg` | [File:The Delightful Sunset in Parakrama Samudra.jpg](https://commons.wikimedia.org/wiki/File:The_Delightful_Sunset_in_Parakrama_Samudra.jpg) | Maadhil | CC BY-SA 4.0 |
 | `place-village.jpg` | [File:Paddy field in sri lanka.jpg](https://commons.wikimedia.org/wiki/File:Paddy_field_in_sri_lanka.jpg) | HarshaX4 | CC BY-SA 4.0 |

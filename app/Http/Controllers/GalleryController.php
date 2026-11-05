@@ -11,7 +11,7 @@ class GalleryController extends Controller
     public function __invoke(): Response
     {
         return Inertia::render('Gallery', [
-            'images' => GalleryImage::orderBy('sort_order')->latest('id')->get(),
+            'images' => GalleryImage::visible()->orderBy('sort_order')->latest('id')->get(),
             'categories' => GalleryImage::CATEGORIES,
         ]);
     }

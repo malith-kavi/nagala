@@ -1,3 +1,4 @@
+import { Amenity, featureIcon, isMeal, Pax } from '@/Components/Site/Amenity';
 import { PackageCard, packageUnit } from '@/Components/Site/Cards';
 import ImageWithFallback from '@/Components/Site/ImageWithFallback';
 import Prose from '@/Components/Site/Prose';
@@ -5,7 +6,7 @@ import SectionHeading from '@/Components/Site/SectionHeading';
 import SiteLayout from '@/Layouts/SiteLayout';
 import { formatLKR } from '@/lib/format';
 import { Link, usePage } from '@inertiajs/react';
-import { ArrowLeft, CalendarDays, Check, Clock, Home, Users, UtensilsCrossed } from 'lucide-react';
+import { ArrowLeft, CalendarDays, Clock, House, Utensils } from 'lucide-react';
 import { Fragment } from 'react';
 
 export default function PackageShow({ package: pkg, cabanas, others }) {
@@ -32,12 +33,10 @@ export default function PackageShow({ package: pkg, cabanas, others }) {
                             {formatLKR(pkg.price)} <span className="text-base font-normal text-stone-500">{packageUnit(pkg)}</span>
                         </p>
                         <ul className="mt-5 space-y-2.5 text-sm text-stone-700">
-                            <li className="flex items-center gap-2">
-                                <Users className="h-4 w-4 shrink-0 text-gold-600" /> {pkg.guests} guests
-                            </li>
+                            <Amenity lead={<Pax count={pkg.guests} />}>{pkg.guests} guests</Amenity>
                             {cabanas.length > 0 && (
                                 <li className="flex items-start gap-2">
-                                    <Home className="mt-0.5 h-4 w-4 shrink-0 text-gold-600" />
+                                    <House className="mt-0.5 h-4 w-4 shrink-0 text-stone-800" aria-hidden />
                                     <span>
                                         Stay in the{' '}
                                         {cabanas.map((c, i) => (
@@ -51,24 +50,24 @@ export default function PackageShow({ package: pkg, cabanas, others }) {
                                     </span>
                                 </li>
                             )}
-                            <li className="flex items-center gap-2">
-                                <Clock className="h-4 w-4 shrink-0 text-gold-600" /> Check-in {settings.check_in_time} · Check-out {settings.check_out_time}
-                            </li>
+                            <Amenity icon={Clock}>
+                                Check-in {settings.check_in_time} · Check-out {settings.check_out_time}
+                            </Amenity>
                         </ul>
-                        {pkg.inclusions?.length > 0 && (
+                        {pkg.inclusion_list?.length > 0 && (
                             <>
                                 <p className="mt-5 text-sm font-semibold text-stone-900">Included</p>
-                                <ul className="mt-2 space-y-1.5 text-sm text-stone-700">
-                                    {pkg.inclusions.map((i) => (
-                                        <li key={i} className="flex items-center gap-2">
-                                            <Check className="h-4 w-4 text-leaf-500" /> {i}
-                                        </li>
+                                <ul className="mt-2 space-y-1.5 text-sm">
+                                    {pkg.inclusion_list.map((i) => (
+                                        <Amenity key={i.key} icon={featureIcon(i)} tone={isMeal(i.label) ? 'perk' : 'neutral'}>
+                                            {i.label}
+                                        </Amenity>
                                     ))}
                                 </ul>
                             </>
                         )}
                         <Link href={route('dining')} className="mt-5 inline-flex items-center gap-1.5 text-sm font-medium text-forest-700 hover:underline">
-                            <UtensilsCrossed className="h-4 w-4" /> See what&rsquo;s on the menu
+                            <Utensils className="h-4 w-4" /> See what&rsquo;s on the menu
                         </Link>
                         <Link href={route('book', { package: pkg.slug })} className="btn-leaf mt-6 w-full">
                             <CalendarDays className="h-4 w-4" /> Book this package

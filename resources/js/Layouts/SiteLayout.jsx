@@ -5,7 +5,7 @@ import FlashMessage from '@/Components/Site/FlashMessage';
 import { SocialIcon } from '@/Components/Site/SocialIcons';
 import { whatsappLink } from '@/lib/format';
 import { Head, Link, usePage } from '@inertiajs/react';
-import { CalendarDays, MapPin, Menu, Phone, X } from 'lucide-react';
+import { CalendarDays, LucideProvider, MapPin, Menu, Phone, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 export const navItems = [
@@ -180,8 +180,9 @@ function Footer() {
 export default function SiteLayout({ title, children }) {
     const { settings } = usePage().props;
 
+    // Thin, even outline icons across the public site (Booking.com style); explicit strokeWidth props still win.
     return (
-        <>
+        <LucideProvider strokeWidth={1.5}>
             <Head title={title} />
             <div className="flex min-h-screen flex-col">
                 <Navbar />
@@ -201,6 +202,6 @@ export default function SiteLayout({ title, children }) {
                     <SocialIcon name="whatsapp" className="h-7 w-7" />
                 </a>
             )}
-        </>
+        </LucideProvider>
     );
 }

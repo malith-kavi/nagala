@@ -1,3 +1,4 @@
+import { Amenity, featureIcon, Pax } from '@/Components/Site/Amenity';
 import { CabanaCard } from '@/Components/Site/Cards';
 import ImageWithFallback from '@/Components/Site/ImageWithFallback';
 import Lightbox from '@/Components/Site/Lightbox';
@@ -6,7 +7,7 @@ import SectionHeading from '@/Components/Site/SectionHeading';
 import SiteLayout from '@/Layouts/SiteLayout';
 import { formatLKR } from '@/lib/format';
 import { Link, usePage } from '@inertiajs/react';
-import { ArrowLeft, BedDouble, CalendarDays, Check, Clock, Users } from 'lucide-react';
+import { ArrowLeft, Banknote, BedDouble, CalendarDays, Check, Clock, GlassWater, Zap } from 'lucide-react';
 import { useState } from 'react';
 
 export default function CabanaShow({ cabana, others }) {
@@ -98,30 +99,30 @@ export default function CabanaShow({ cabana, others }) {
                         <h1 className="mt-1 font-display text-4xl font-semibold text-forest-800 sm:text-5xl">{cabana.name}</h1>
                         {cabana.short_description && <p className="mt-3 text-lg text-stone-600">{cabana.short_description}</p>}
 
-                        <div className="mt-6 flex flex-wrap gap-6 text-sm text-stone-700">
-                            <span className="flex items-center gap-2">
-                                <Users className="h-5 w-5 text-gold-600" /> Up to {cabana.max_guests} guests
-                            </span>
+                        <div className="mt-6 flex flex-wrap gap-6 text-sm">
+                            <Amenity as="span" size="md" lead={<Pax count={cabana.max_guests} size="md" />}>
+                                Up to {cabana.max_guests} guests
+                            </Amenity>
                             {cabana.beds && (
-                                <span className="flex items-center gap-2">
-                                    <BedDouble className="h-5 w-5 text-gold-600" /> {cabana.beds}
-                                </span>
+                                <Amenity as="span" size="md" icon={BedDouble}>
+                                    {cabana.beds}
+                                </Amenity>
                             )}
-                            <span className="flex items-center gap-2">
-                                <Clock className="h-5 w-5 text-gold-600" /> Check-in {settings.check_in_time} · Check-out {settings.check_out_time}
-                            </span>
+                            <Amenity as="span" size="md" icon={Clock}>
+                                Check-in {settings.check_in_time} · Check-out {settings.check_out_time}
+                            </Amenity>
                         </div>
 
                         <Prose text={cabana.description} className="mt-8" />
 
-                        {cabana.features?.length > 0 && (
+                        {cabana.feature_list?.length > 0 && (
                             <>
                                 <h2 className="mt-10 font-display text-2xl font-semibold text-forest-800">Amenities</h2>
                                 <ul className="mt-4 grid gap-3 sm:grid-cols-2">
-                                    {cabana.features.map((f) => (
-                                        <li key={f} className="flex items-center gap-2 text-stone-700">
-                                            <Check className="h-4 w-4 text-leaf-500" /> {f}
-                                        </li>
+                                    {cabana.feature_list.map((f) => (
+                                        <Amenity key={f.key} size="md" icon={featureIcon(f)}>
+                                            {f.label}
+                                        </Amenity>
                                     ))}
                                 </ul>
                             </>
@@ -134,19 +135,19 @@ export default function CabanaShow({ cabana, others }) {
                             {formatLKR(cabana.price_per_night)} <span className="text-base font-normal text-stone-500">/ night</span>
                         </p>
                         <p className="text-xs text-stone-500">Cabana only · full board packages available</p>
-                        <ul className="mt-4 space-y-2 text-sm text-stone-600">
-                            <li className="flex gap-2">
-                                <Check className="h-4 w-4 text-leaf-500" /> Free welcome drink &amp; bed tea
-                            </li>
-                            <li className="flex gap-2">
-                                <Check className="h-4 w-4 text-leaf-500" /> Pay on arrival – no card needed
-                            </li>
-                            <li className="flex gap-2">
-                                <Check className="h-4 w-4 text-leaf-500" /> Instant booking request
-                            </li>
-                            <li className="flex gap-2">
-                                <Check className="h-4 w-4 text-leaf-500" /> Free cancellation – just let us know
-                            </li>
+                        <ul className="mt-4 space-y-2 text-sm">
+                            <Amenity tone="perk" icon={GlassWater}>
+                                Free welcome drink &amp; bed tea
+                            </Amenity>
+                            <Amenity tone="perk" icon={Banknote}>
+                                Pay on arrival – no card needed
+                            </Amenity>
+                            <Amenity tone="perk" icon={Zap}>
+                                Instant booking request
+                            </Amenity>
+                            <Amenity tone="perk" icon={Check}>
+                                Free cancellation – just let us know
+                            </Amenity>
                         </ul>
                         <Link href={route('book', { cabana: cabana.slug })} className="btn-leaf mt-6 w-full">
                             <CalendarDays className="h-4 w-4" /> Book this cabana

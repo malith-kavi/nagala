@@ -67,6 +67,7 @@ class NearbyPlaceController extends Controller
             'is_active' => ['boolean'],
             'sort_order' => ['nullable', 'integer'],
             'cover_image' => ['nullable', 'image', 'max:8192'],
+            'cover_credit' => ['nullable', 'string', 'max:255'],
         ]);
 
         $place->fill([
@@ -76,6 +77,12 @@ class NearbyPlaceController extends Controller
         ]);
 
         $this->syncCoverImage($request, $place, 'places');
+
+        // A new or removed photo shouldn't keep the previous photographer's credit.
+        if ($place->isDirty('cover_image') && ! $place->isDirty('cover_credit')) {
+            $place->cover_credit = null;
+        }
+
         $place->save();
     }
 }

@@ -12,7 +12,7 @@ class NearbyPlace extends Model
 
     protected $fillable = [
         'name', 'slug', 'distance_km', 'travel_minutes', 'tagline', 'short_description',
-        'description', 'cover_image', 'map_url', 'is_active', 'sort_order',
+        'description', 'cover_image', 'cover_credit', 'map_url', 'is_active', 'sort_order',
     ];
 
     protected function casts(): array

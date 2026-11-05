@@ -18,7 +18,7 @@ class GalleryImageController extends Controller
     public function index(): Response
     {
         return Inertia::render('Admin/Gallery', [
-            'images' => GalleryImage::orderBy('sort_order')->latest('id')->get(),
+            'images' => GalleryImage::with('cabana:id,name')->orderBy('sort_order')->latest('id')->get(),
             'categories' => GalleryImage::CATEGORIES,
         ]);
     }
@@ -56,8 +56,14 @@ class GalleryImageController extends Controller
 
     public function destroy(GalleryImage $image): RedirectResponse
     {
-        $this->deleteStored($image->path);
         $image->delete();
+
+        // A cabana's photo is still used on its cabana page, so only its gallery entry goes.
+        if ($image->cabana_id) {
+            return back()->with('success', 'Removed from the gallery. The photo is still on the cabana page.');
+        }
+
+        $this->deleteStored($image->path);
 
         return back()->with('success', 'Image deleted.');
     }

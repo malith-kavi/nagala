@@ -19,6 +19,7 @@ export default function PlaceForm({ place }) {
         is_active: place?.is_active ?? true,
         sort_order: place?.sort_order ?? 0,
         cover_image: null,
+        cover_credit: place?.cover_credit ?? '',
         remove_cover_image: false,
     });
 
@@ -55,6 +56,9 @@ export default function PlaceForm({ place }) {
                         </Field>
                         <Field label="Full description" error={errors.description} className="sm:col-span-2">
                             <textarea rows={6} className="input" value={data.description} onChange={(e) => setData('description', e.target.value)} />
+                        </Field>
+                        <Field label="Photo credit" error={errors.cover_credit} hint="Shown under the photo on the place page" className="sm:col-span-2">
+                            <input className="input" value={data.cover_credit} onChange={(e) => setData('cover_credit', e.target.value)} />
                         </Field>
                         <Field label="Sort order" error={errors.sort_order}>
                             <input type="number" className="input" value={data.sort_order} onChange={(e) => setData('sort_order', e.target.value)} />

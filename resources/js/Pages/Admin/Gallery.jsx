@@ -2,8 +2,8 @@ import DeleteButton from '@/Components/Admin/DeleteButton';
 import Field from '@/Components/Site/Field';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { IMAGE_ACCEPT, prepareImages } from '@/lib/prepareImage';
-import { router, useForm } from '@inertiajs/react';
-import { Upload } from 'lucide-react';
+import { Link, router, useForm } from '@inertiajs/react';
+import { House, Upload } from 'lucide-react';
 import { useState } from 'react';
 
 function ImageRow({ image, categories }) {
@@ -12,7 +12,17 @@ function ImageRow({ image, categories }) {
 
     return (
         <div className="overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-stone-200">
-            <img src={image.url} alt={image.caption || ''} className="aspect-[4/3] w-full object-cover" />
+            <div className="relative">
+                <img src={image.url} alt={image.caption || ''} className="aspect-[4/3] w-full object-cover" />
+                {image.cabana && (
+                    <Link
+                        href={route('admin.cabanas.edit', image.cabana.id)}
+                        className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-white/90 px-2.5 py-1 text-xs font-medium text-forest-800 shadow-sm hover:bg-white"
+                    >
+                        <House className="h-3.5 w-3.5" aria-hidden /> From {image.cabana.name}
+                    </Link>
+                )}
+            </div>
             <div className="space-y-2 p-3">
                 <input
                     className="input py-1.5"
@@ -28,7 +38,10 @@ function ImageRow({ image, categories }) {
                             </option>
                         ))}
                     </select>
-                    <DeleteButton href={route('admin.gallery.destroy', image.id)} confirm="Delete this photo?" />
+                    <DeleteButton
+                        href={route('admin.gallery.destroy', image.id)}
+                        confirm={image.cabana ? `Remove this photo from the gallery? It stays on the ${image.cabana.name} page.` : 'Delete this photo?'}
+                    />
                 </div>
             </div>
         </div>
@@ -52,6 +65,7 @@ export default function Gallery({ images, categories }) {
         <AdminLayout title="Gallery">
             <form onSubmit={submit} className="mb-8 rounded-xl bg-white p-5 shadow-sm ring-1 ring-stone-200">
                 <h2 className="font-semibold text-stone-900">Upload photos</h2>
+                <p className="mt-1 text-sm text-stone-500">Photos added to a cabana appear here automatically.</p>
                 <div className="mt-4 grid gap-4 md:grid-cols-[2fr_1fr_1fr_auto] md:items-end">
                     <Field label="Photos (select multiple)" error={errors.images || Object.entries(errors).find(([k]) => k.startsWith('images.'))?.[1]}>
                         <input

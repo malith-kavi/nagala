@@ -1,3 +1,4 @@
+import { Pax } from '@/Components/Site/Amenity';
 import { packageUnit } from '@/Components/Site/Cards';
 import Field from '@/Components/Site/Field';
 import ImageWithFallback from '@/Components/Site/ImageWithFallback';
@@ -6,11 +7,22 @@ import SiteLayout from '@/Layouts/SiteLayout';
 import { addDays, formatDate, formatLKR, nightsBetween, toISODate } from '@/lib/format';
 import { useForm } from '@inertiajs/react';
 import axios from 'axios';
-import { AlertTriangle, CalendarCheck, CheckCircle2, Loader2 } from 'lucide-react';
+import { AlertTriangle, CalendarCheck, CalendarDays, Check, CheckCircle2, House, Loader2, Moon, User, Utensils } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
 // Mirrors Package::fitsCabana(): the package's linked cabana, or any cabana sized for exactly its guests.
 const fits = (pkg, cabana) => (pkg.cabana_id ? pkg.cabana_id === cabana.id : pkg.guests === cabana.max_guests);
+
+function SummaryRow({ icon: Icon, label, children }) {
+    return (
+        <div className="flex justify-between gap-4">
+            <dt className="flex items-center gap-2 text-stone-500">
+                <Icon className="h-4 w-4 shrink-0 text-stone-800" aria-hidden /> {label}
+            </dt>
+            <dd className="text-right font-medium">{children}</dd>
+        </div>
+    );
+}
 
 export default function Book({ cabanas, packages, preselect }) {
     const today = toISODate(new Date());
@@ -147,11 +159,11 @@ export default function Book({ cabanas, packages, preselect }) {
                                             <ImageWithFallback src={c.cover_image_url} alt="" className="aspect-[16/9] w-full" />
                                             <span className="block p-3">
                                                 <span className="block text-sm font-semibold text-stone-900">{c.name}</span>
-                                                <span className="block text-xs text-stone-600">
+                                                <span className="mt-0.5 flex items-center justify-between gap-2 text-xs text-stone-600">
                                                     {tilePackage
                                                         ? `${formatLKR(tilePackage.price)} ${packageUnit(tilePackage)} full board`
-                                                        : `${formatLKR(c.price_per_night)} / night`}{' '}
-                                                    · up to {c.max_guests}
+                                                        : `${formatLKR(c.price_per_night)} / night`}
+                                                    <Pax count={c.max_guests} size="xs" />
                                                 </span>
                                             </span>
                                         </button>
@@ -164,7 +176,7 @@ export default function Book({ cabanas, packages, preselect }) {
                                 <Field
                                     label="Meals"
                                     error={errors.package_id}
-                                    hint={pkg ? `Includes ${(pkg.inclusions ?? []).join(', ')}` : 'Add breakfast, lunch & dinner with a full board package'}
+                                    hint={pkg ? `Includes ${(pkg.inclusion_list ?? []).map((i) => i.label).join(', ')}` : 'Add breakfast, lunch & dinner with a full board package'}
                                     className="sm:col-span-2"
                                 >
                                     <select className="input" value={data.package_id} onChange={(e) => choosePackage(e.target.value)}>
@@ -251,36 +263,31 @@ export default function Book({ cabanas, packages, preselect }) {
                             <CalendarCheck className="h-6 w-6" /> Summary
                         </h2>
                         <dl className="mt-5 space-y-3 text-sm">
-                            <div className="flex justify-between gap-4">
-                                <dt className="text-stone-500">Cabana</dt>
-                                <dd className="text-right font-medium">{cabana?.name ?? '—'}</dd>
-                            </div>
+                            <SummaryRow icon={House} label="Cabana">
+                                {cabana?.name ?? '—'}
+                            </SummaryRow>
                             {pkg && (
-                                <div className="flex justify-between gap-4">
-                                    <dt className="text-stone-500">Package</dt>
-                                    <dd className="text-right font-medium">{pkg.name}</dd>
-                                </div>
+                                <SummaryRow icon={Utensils} label="Package">
+                                    {pkg.name}
+                                </SummaryRow>
                             )}
-                            <div className="flex justify-between gap-4">
-                                <dt className="text-stone-500">Dates</dt>
-                                <dd className="text-right font-medium">
-                                    {formatDate(data.check_in, { day: 'numeric', month: 'short' })} → {formatDate(data.check_out)}
-                                </dd>
-                            </div>
-                            <div className="flex justify-between gap-4">
-                                <dt className="text-stone-500">Nights</dt>
-                                <dd className="font-medium">{nights}</dd>
-                            </div>
-                            <div className="flex justify-between gap-4">
-                                <dt className="text-stone-500">Guests</dt>
-                                <dd className="font-medium">{data.guests}</dd>
-                            </div>
+                            <SummaryRow icon={CalendarDays} label="Dates">
+                                {formatDate(data.check_in, { day: 'numeric', month: 'short' })} → {formatDate(data.check_out)}
+                            </SummaryRow>
+                            <SummaryRow icon={Moon} label="Nights">
+                                {nights}
+                            </SummaryRow>
+                            <SummaryRow icon={User} label="Guests">
+                                {data.guests}
+                            </SummaryRow>
                         </dl>
                         <div className="mt-5 flex items-end justify-between border-t border-stone-200 pt-5">
                             <span className="text-sm text-stone-600">Total</span>
                             <span className="text-2xl font-bold text-forest-800">{formatLKR(total)}</span>
                         </div>
-                        <p className="mt-1 text-right text-xs text-stone-500">Pay on arrival · free welcome drink &amp; bed tea included</p>
+                        <p className="mt-1 flex items-center justify-end gap-1 text-right text-xs font-medium text-forest-500">
+                            <Check className="h-3.5 w-3.5 shrink-0 text-leaf-600" aria-hidden /> Pay on arrival · free welcome drink &amp; bed tea included
+                        </p>
 
                         <button type="submit" disabled={processing || unavailable || nights < 1} className="btn-leaf mt-6 w-full">
                             {processing ? <Loader2 className="h-4 w-4 animate-spin" /> : <CalendarCheck className="h-4 w-4" />}

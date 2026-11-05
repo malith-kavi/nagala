@@ -5,9 +5,11 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Admin\Concerns\ManagesUploads;
 use App\Http\Controllers\Controller;
 use App\Models\Cabana;
+use App\Models\GalleryImage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -24,7 +26,7 @@ class CabanaController extends Controller
 
     public function create(): Response
     {
-        return Inertia::render('Admin/Cabanas/Form', ['cabana' => null]);
+        return Inertia::render('Admin/Cabanas/Form', ['cabana' => null, 'featureOptions' => Cabana::FEATURES]);
     }
 
     public function store(Request $request): RedirectResponse
@@ -37,7 +39,7 @@ class CabanaController extends Controller
 
     public function edit(Cabana $cabana): Response
     {
-        return Inertia::render('Admin/Cabanas/Form', ['cabana' => $cabana]);
+        return Inertia::render('Admin/Cabanas/Form', ['cabana' => $cabana, 'featureOptions' => Cabana::FEATURES]);
     }
 
     public function update(Request $request, Cabana $cabana): RedirectResponse
@@ -66,6 +68,8 @@ class CabanaController extends Controller
 
     private function save(Request $request, Cabana $cabana): void
     {
+        $before = $cabana->photoPaths();
+
         $data = $request->validate([
             'name' => ['required', 'string', 'max:120'],
             'slug' => ['nullable', 'string', 'max:140'],
@@ -73,7 +77,9 @@ class CabanaController extends Controller
             'description' => ['nullable', 'string', 'max:10000'],
             'max_guests' => ['required', 'integer', 'min:1', 'max:20'],
             'beds' => ['nullable', 'string', 'max:120'],
-            'features' => ['nullable'],
+            'features' => ['nullable', 'array'],
+            // Older free-text entries already on this cabana may stay until the admin unticks them.
+            'features.*' => ['string', Rule::in([...array_keys(Cabana::FEATURES), ...($cabana->features ?? [])])],
             'price_per_night' => ['required', 'integer', 'min:0'],
             'units' => ['required', 'integer', 'min:1', 'max:50'],
             'is_active' => ['boolean'],
@@ -89,7 +95,7 @@ class CabanaController extends Controller
         $cabana->fill([
             ...collect($data)->except(['cover_image', 'new_images', 'remove_images', 'image_order', 'slug', 'features'])->all(),
             'slug' => $this->uniqueSlug(Cabana::class, ($data['slug'] ?? null) ?: $data['name'], $cabana->id),
-            'features' => $this->lines($data['features'] ?? []),
+            'features' => Cabana::orderFeatures($data['features'] ?? []),
             'sort_order' => $data['sort_order'] ?? 0,
         ]);
 
@@ -103,6 +109,22 @@ class CabanaController extends Controller
         $cabana->images = $this->orderImages($kept, $uploaded, $data['image_order'] ?? [])->all();
 
         $cabana->save();
+        $this->syncGallery($cabana, $before);
+    }
+
+    /**
+     * New cabana photos join the gallery; photos taken off the cabana (their files are deleted) leave it.
+     * A photo the admin removed from the gallery stays out, since only newly added photos are added.
+     */
+    private function syncGallery(Cabana $cabana, array $before): void
+    {
+        $after = $cabana->photoPaths();
+        $cabana->galleryImages()->whereIn('path', array_diff($before, $after))->delete();
+
+        $inGallery = GalleryImage::whereIn('path', $after)->pluck('path')->all();
+        foreach (array_diff($after, $before, $inGallery) as $path) {
+            $cabana->galleryImages()->create(['path' => $path, 'caption' => $cabana->name, 'category' => 'cabanas']);
+        }
     }
 
     /**

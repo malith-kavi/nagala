@@ -15,7 +15,8 @@ export default function Gallery({ images, categories }) {
         <SiteLayout title="Gallery">
             <PageHeader eyebrow="Moments at Nagala" title="Gallery" subtitle="A glimpse of life at the cottage and the beauty around us." />
 
-            <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+            {/* Wider than other pages so four columns of photos stay large */}
+            <section className="mx-auto max-w-screen-2xl px-3 py-14 sm:px-4 lg:px-6">
                 {used.length > 1 && (
                     <div className="mb-10 flex flex-wrap justify-center gap-2">
                         {['all', ...used].map((c) => (
@@ -34,13 +35,13 @@ export default function Gallery({ images, categories }) {
                 )}
 
                 {visible.length ? (
-                    <div className="columns-1 gap-4 sm:columns-2 lg:columns-3">
+                    <div className="columns-2 gap-3 sm:gap-4 md:columns-3 lg:columns-4">
                         {visible.map((img, i) => (
                             <button
                                 key={img.id}
                                 type="button"
                                 onClick={() => setLightbox(i)}
-                                className="group relative mb-4 block w-full overflow-hidden rounded-xl break-inside-avoid"
+                                className="group relative mb-3 block w-full overflow-hidden rounded-xl break-inside-avoid sm:mb-4"
                             >
                                 <img src={img.url} alt={img.caption || ''} loading="lazy" className="w-full transition duration-500 group-hover:scale-105" />
                                 {img.caption && (

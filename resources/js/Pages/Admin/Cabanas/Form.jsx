@@ -1,3 +1,4 @@
+import FeaturePicker from '@/Components/Admin/FeaturePicker';
 import FormActions from '@/Components/Admin/FormActions';
 import ImageInput from '@/Components/Admin/ImageInput';
 import PhotoOrderInput from '@/Components/Admin/PhotoOrderInput';
@@ -5,8 +6,9 @@ import Field from '@/Components/Site/Field';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { useForm } from '@inertiajs/react';
 
-export default function CabanaForm({ cabana }) {
+export default function CabanaForm({ cabana, featureOptions }) {
     const editing = Boolean(cabana);
+    const olderFeatures = (cabana?.features ?? []).filter((f) => !(f in featureOptions));
     const { data, setData, post, processing, errors, transform } = useForm({
         _method: editing ? 'put' : 'post',
         name: cabana?.name ?? '',
@@ -15,7 +17,7 @@ export default function CabanaForm({ cabana }) {
         description: cabana?.description ?? '',
         max_guests: cabana?.max_guests ?? 2,
         beds: cabana?.beds ?? '',
-        features: (cabana?.features ?? []).join('\n'),
+        features: cabana?.features ?? [],
         price_per_night: cabana?.price_per_night ?? '',
         units: cabana?.units ?? 1,
         is_active: cabana?.is_active ?? true,
@@ -71,9 +73,16 @@ export default function CabanaForm({ cabana }) {
                         <Field label="Beds" error={errors.beds}>
                             <input className="input" value={data.beds} onChange={(e) => setData('beds', e.target.value)} placeholder="1 Double Bed" />
                         </Field>
-                        <Field label="Features / amenities" error={errors.features} hint="One per line" className="sm:col-span-2">
-                            <textarea rows={4} className="input" value={data.features} onChange={(e) => setData('features', e.target.value)} />
-                        </Field>
+                        <FeaturePicker
+                            label="Features / amenities"
+                            hint="Shown with these icons on the website. The first two ticked (in this order) appear on the cabana card."
+                            options={featureOptions}
+                            older={olderFeatures}
+                            value={data.features}
+                            onChange={(features) => setData('features', features)}
+                            error={errors.features ?? Object.entries(errors).find(([k]) => k.startsWith('features.'))?.[1]}
+                            className="sm:col-span-2"
+                        />
                         <Field label="Sort order" error={errors.sort_order}>
                             <input type="number" className="input" value={data.sort_order} onChange={(e) => setData('sort_order', e.target.value)} />
                         </Field>

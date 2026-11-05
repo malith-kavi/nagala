@@ -1,11 +1,13 @@
+import FeaturePicker from '@/Components/Admin/FeaturePicker';
 import FormActions from '@/Components/Admin/FormActions';
 import ImageInput from '@/Components/Admin/ImageInput';
 import Field from '@/Components/Site/Field';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { useForm } from '@inertiajs/react';
 
-export default function PackageForm({ package: pkg, cabanas }) {
+export default function PackageForm({ package: pkg, cabanas, inclusionOptions }) {
     const editing = Boolean(pkg);
+    const olderInclusions = (pkg?.inclusions ?? []).filter((i) => !(i in inclusionOptions));
     const { data, setData, post, processing, errors } = useForm({
         _method: editing ? 'put' : 'post',
         name: pkg?.name ?? '',
@@ -14,7 +16,7 @@ export default function PackageForm({ package: pkg, cabanas }) {
         description: pkg?.description ?? '',
         nights: pkg?.nights ?? 1,
         guests: pkg?.guests ?? 2,
-        inclusions: (pkg?.inclusions ?? []).join('\n'),
+        inclusions: pkg?.inclusions ?? [],
         price: pkg?.price ?? '',
         cabana_id: pkg?.cabana_id ?? '',
         is_active: pkg?.is_active ?? true,
@@ -64,9 +66,16 @@ export default function PackageForm({ package: pkg, cabanas }) {
                         <Field label="Guests *" error={errors.guests}>
                             <input type="number" min="1" className="input" value={data.guests} onChange={(e) => setData('guests', e.target.value)} required />
                         </Field>
-                        <Field label="What's included" error={errors.inclusions} hint="One per line, e.g. Cabana, Breakfast, Lunch, Dinner" className="sm:col-span-2">
-                            <textarea rows={4} className="input" value={data.inclusions} onChange={(e) => setData('inclusions', e.target.value)} />
-                        </Field>
+                        <FeaturePicker
+                            label="What's included"
+                            hint="Shown with these icons on the website, in this order. Meals are highlighted in green on the package page."
+                            options={inclusionOptions}
+                            older={olderInclusions}
+                            value={data.inclusions}
+                            onChange={(inclusions) => setData('inclusions', inclusions)}
+                            error={errors.inclusions ?? Object.entries(errors).find(([k]) => k.startsWith('inclusions.'))?.[1]}
+                            className="sm:col-span-2"
+                        />
                         <Field label="Sort order" error={errors.sort_order}>
                             <input type="number" className="input" value={data.sort_order} onChange={(e) => setData('sort_order', e.target.value)} />
                         </Field>
