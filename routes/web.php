@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\CabanaController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\DiningController;
 use App\Http\Controllers\GalleryController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\NearbyPlaceController;
@@ -23,6 +24,8 @@ Route::get('/cabanas/{slug}', [CabanaController::class, 'show'])->name('cabanas.
 
 Route::get('/packages', [PackageController::class, 'index'])->name('packages.index');
 Route::get('/packages/{slug}', [PackageController::class, 'show'])->name('packages.show');
+
+Route::get('/dining', DiningController::class)->name('dining');
 
 Route::get('/nearby-places', [NearbyPlaceController::class, 'index'])->name('places.index');
 Route::get('/nearby-places/{slug}', [NearbyPlaceController::class, 'show'])->name('places.show');
@@ -48,6 +51,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::resource('cabanas', Admin\CabanaController::class)->except('show');
     Route::resource('packages', Admin\PackageController::class)->except('show');
     Route::resource('places', Admin\NearbyPlaceController::class)->except('show');
+    Route::resource('menu', Admin\MenuSectionController::class)->parameters(['menu' => 'section'])->except('show');
 
     Route::get('gallery', [Admin\GalleryImageController::class, 'index'])->name('gallery.index');
     Route::post('gallery', [Admin\GalleryImageController::class, 'store'])->name('gallery.store');

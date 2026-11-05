@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\Cabana;
+use App\Models\Package;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
 
@@ -42,6 +43,14 @@ class StoreBookingRequest extends FormRequest
 
                 if ((int) $this->input('guests') > $cabana->max_guests) {
                     $validator->errors()->add('guests', "The {$cabana->name} sleeps up to {$cabana->max_guests} guests.");
+                }
+
+                $package = $this->filled('package_id') ? Package::find($this->input('package_id')) : null;
+
+                if ($package && ! $package->fitsCabana($cabana)) {
+                    $validator->errors()->add('package_id', $package->cabana_id
+                        ? "The {$package->name} is only available in the {$package->cabana?->name}."
+                        : "The {$package->name} is for our {$package->guests}-guest cabanas.");
                 }
             },
         ];

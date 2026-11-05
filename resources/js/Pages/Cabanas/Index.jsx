@@ -10,8 +10,8 @@ export default function CabanasIndex({ cabanas }) {
                 title="Our Eco Cabanas"
                 subtitle="Handcrafted thatched cabanas surrounded by tropical greenery and mountain views."
             />
-            <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8">
-                <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                     {cabanas.map((c) => (
                         <CabanaCard key={c.id} cabana={c} />
                     ))}

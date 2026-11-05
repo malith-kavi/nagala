@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Cabana;
 use App\Models\GalleryImage;
+use App\Models\MenuSection;
 use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -40,6 +41,7 @@ class AdminAccessTest extends TestCase
             route('admin.dashboard'), route('admin.bookings.index'), route('admin.cabanas.index'),
             route('admin.cabanas.create'), route('admin.cabanas.edit', $cabana), route('admin.packages.index'),
             route('admin.packages.create'), route('admin.places.index'), route('admin.places.create'),
+            route('admin.menu.index'), route('admin.menu.create'), route('admin.menu.edit', MenuSection::first()),
             route('admin.gallery.index'), route('admin.messages.index'), route('admin.settings.edit'),
             route('profile.edit'),
         ] as $url) {
@@ -96,6 +98,33 @@ class AdminAccessTest extends TestCase
         $this->assertSame('cabanas/c.jpg', $images[0]);
         $this->assertNotContains($images[1], ['cabanas/a.jpg', 'cabanas/b.jpg', 'cabanas/c.jpg']);
         $this->assertSame('cabanas/a.jpg', $images[2]);
+    }
+
+    public function test_admin_can_manage_the_food_menu(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $this->actingAs($admin)->post(route('admin.menu.store'), [
+            'meal' => 'dinner',
+            'title' => 'Dessert',
+            'note' => 'Choose one',
+            'items' => "Papol\n\n  Banana  \n",
+        ])->assertRedirect(route('admin.menu.index'));
+
+        $section = MenuSection::firstOrFail();
+        $this->assertSame(['Papol', 'Banana'], $section->items);
+        $this->get(route('dining'))->assertOk()->assertSee('Papol');
+
+        $this->actingAs($admin)->put(route('admin.menu.update', $section), [
+            'meal' => 'lunch', 'title' => 'Dessert', 'items' => "Jelly\nKiri",
+        ])->assertRedirect(route('admin.menu.index'));
+        $this->assertSame(['lunch', ['Jelly', 'Kiri']], [$section->fresh()->meal, $section->fresh()->items]);
+
+        $this->actingAs($admin)->post(route('admin.menu.store'), ['meal' => 'supper', 'title' => 'X', 'items' => ' '])
+            ->assertSessionHasErrors(['meal', 'items']);
+
+        $this->actingAs($admin)->delete(route('admin.menu.destroy', $section))->assertSessionHas('success');
+        $this->assertSame(0, MenuSection::count());
     }
 
     public function test_admin_can_upload_gallery_images_and_update_settings(): void

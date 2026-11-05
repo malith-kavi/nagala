@@ -45,12 +45,12 @@ export default function PackageForm({ package: pkg, cabanas }) {
                         <Field label="Full description" error={errors.description} className="sm:col-span-2">
                             <textarea rows={5} className="input" value={data.description} onChange={(e) => setData('description', e.target.value)} />
                         </Field>
-                        <Field label="Price (LKR) *" error={errors.price}>
+                        <Field label="Price (LKR) *" error={errors.price} hint="Covers the nights below; longer stays repeat this rate">
                             <input type="number" min="0" className="input" value={data.price} onChange={(e) => setData('price', e.target.value)} required />
                         </Field>
-                        <Field label="Cabana used" error={errors.cabana_id}>
+                        <Field label="Cabana used" error={errors.cabana_id} hint="Leave as 'any' to allow every cabana sized for the guests below">
                             <select className="input" value={data.cabana_id} onChange={(e) => setData('cabana_id', e.target.value)}>
-                                <option value="">Guest chooses</option>
+                                <option value="">Any cabana for this many guests</option>
                                 {cabanas.map((c) => (
                                     <option key={c.id} value={c.id}>
                                         {c.name}
@@ -64,7 +64,7 @@ export default function PackageForm({ package: pkg, cabanas }) {
                         <Field label="Guests *" error={errors.guests}>
                             <input type="number" min="1" className="input" value={data.guests} onChange={(e) => setData('guests', e.target.value)} required />
                         </Field>
-                        <Field label="What's included" error={errors.inclusions} hint="One per line, e.g. Room, Breakfast, Village Tour" className="sm:col-span-2">
+                        <Field label="What's included" error={errors.inclusions} hint="One per line, e.g. Cabana, Breakfast, Lunch, Dinner" className="sm:col-span-2">
                             <textarea rows={4} className="input" value={data.inclusions} onChange={(e) => setData('inclusions', e.target.value)} />
                         </Field>
                         <Field label="Sort order" error={errors.sort_order}>

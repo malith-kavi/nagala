@@ -12,6 +12,7 @@ export const navItems = [
     { label: 'Home', route: 'home', match: 'home' },
     { label: 'Cabanas', route: 'cabanas.index', match: 'cabanas.*' },
     { label: 'Packages', route: 'packages.index', match: 'packages.*' },
+    { label: 'Dining', route: 'dining', match: 'dining' },
     { label: 'Nearby Places', route: 'places.index', match: 'places.*' },
     { label: 'Gallery', route: 'gallery', match: 'gallery' },
     { label: 'Contact', route: 'contact', match: 'contact' },

@@ -20,9 +20,10 @@ class SampleImagesSeeder extends Seeder
     public function run(): void
     {
         $cabanas = [
-            'standard-cabana' => ['cabana-standard.jpg', ['cabana-veranda.jpg', 'cabana-interior.jpg', 'cabana-garden.jpg']],
-            'deluxe-cabana' => ['cabana-deluxe.jpg', ['cabana-interior.jpg', 'cabana-veranda.jpg', 'nature-hills.jpg']],
-            'family-cabana' => ['cabana-family.jpg', ['cabana-garden.jpg', 'cabana-interior.jpg', 'cabana-veranda.jpg']],
+            'couple-cabana' => ['cabana-standard.jpg', ['cabana-veranda.jpg', 'cabana-interior.jpg', 'cabana-garden.jpg']],
+            'family-cabana-i' => ['cabana-deluxe.jpg', ['cabana-interior.jpg', 'cabana-veranda.jpg', 'nature-hills.jpg']],
+            'large-family-cabana' => ['cabana-family.jpg', ['cabana-garden.jpg', 'cabana-interior.jpg', 'cabana-veranda.jpg']],
+            'family-cabana-ii' => ['cabana-garden.jpg', ['cabana-veranda.jpg', 'cabana-interior.jpg', 'nature-palms.jpg']],
         ];
 
         foreach ($cabanas as $slug => [$cover, $images]) {
@@ -39,16 +40,14 @@ class SampleImagesSeeder extends Seeder
         }
 
         $this->fillCovers(Package::class, [
-            'couple-package' => 'package-couple.jpg',
-            'family-package' => 'package-family.jpg',
-            'adventure-package' => 'package-adventure.jpg',
+            'couple-full-board' => 'package-couple.jpg',
+            'family-full-board-4-guests' => 'package-family.jpg',
+            'family-full-board-5-guests' => 'food-rice-curry.jpg',
         ]);
 
         $this->fillCovers(NearbyPlace::class, [
             'yapahuwa-rock-fortress' => 'place-yapahuwa.jpg',
             'hakwatunawa-lake' => 'place-hakwatunawa.jpg',
-            'nikawewa-reservoir' => 'place-nikawewa.jpg',
-            'village-experiences' => 'place-village.jpg',
         ]);
 
         $settings = array_filter([
@@ -66,8 +65,8 @@ class SampleImagesSeeder extends Seeder
 
         $gallery = [
             ['hero.jpg', 'Our eco cabanas among the gardens', 'cabanas'],
-            ['cabana-standard.jpg', 'Standard Cabana with private veranda', 'cabanas'],
-            ['cabana-deluxe.jpg', 'Deluxe Cabana with mountain views', 'cabanas'],
+            ['cabana-standard.jpg', 'The Couple Cabana', 'cabanas'],
+            ['cabana-deluxe.jpg', 'Family Cabana I', 'cabanas'],
             ['cabana-veranda.jpg', 'A quiet veranda to unwind', 'cabanas'],
             ['banner.jpg', 'Sunset over the hills', 'nature'],
             ['nature-hills.jpg', 'Golden evening over the mountains', 'nature'],

@@ -16,7 +16,7 @@ import { useState } from 'react';
 // Each home section fills one screen below the 72px sticky navbar.
 const screenSection = 'flex min-h-[calc(100svh-72px)] flex-col justify-center';
 
-export default function Home({ cabanas, places, packages }) {
+export default function Home({ cabanas, places, placesCount, packages }) {
     const { settings } = usePage().props;
     const [video, setVideo] = useState(false);
 
@@ -68,20 +68,21 @@ export default function Home({ cabanas, places, packages }) {
             {/* Cabanas */}
             <section id="cabanas" className={`relative overflow-hidden bg-gradient-to-b from-[#fbf9f2] to-[#f7f3e8] py-10 ${screenSection}`}>
                 <CabanaLeaves />
-                <div className="relative mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8">
+                <div className="relative mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
                     <SectionHeading
                         eyebrow="Our Stay Options"
                         title="Our Eco Cabanas"
                     />
                     <div className="mt-8">
-                        {cabanas.length > 3 ? (
-                            <Carousel>
+                        {/* All four cabanas side by side; a carousel only if more are added later */}
+                        {cabanas.length > 4 ? (
+                            <Carousel itemClassName="w-[85%] sm:w-[calc(50%-12px)] lg:w-[calc(25%-18px)]">
                                 {cabanas.map((c) => (
                                     <CabanaCard key={c.id} cabana={c} className="h-full" />
                                 ))}
                             </Carousel>
                         ) : (
-                            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                                 {cabanas.map((c) => (
                                     <CabanaCard key={c.id} cabana={c} />
                                 ))}
@@ -118,6 +119,13 @@ export default function Home({ cabanas, places, packages }) {
                                 </div>
                             ))}
                         </div>
+                        {placesCount > places.length && (
+                            <div className="reveal-item mt-8 text-center" style={revealDelay(150 + places.length * 100)}>
+                                <Link href={route('places.index')} className="btn-outline-light">
+                                    View all {placesCount} places <ArrowRight className="h-4 w-4" />
+                                </Link>
+                            </div>
+                        )}
                     </Reveal>
                 </section>
 

@@ -15,6 +15,7 @@ class HomeController extends Controller
         return Inertia::render('Home', [
             'cabanas' => Cabana::active()->get(),
             'places' => NearbyPlace::active()->take(4)->get(),
+            'placesCount' => NearbyPlace::active()->count(),
             'packages' => Package::active()->take(3)->get(),
         ]);
     }

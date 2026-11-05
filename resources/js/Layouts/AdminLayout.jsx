@@ -14,6 +14,7 @@ import {
     Package,
     Settings,
     UserCog,
+    UtensilsCrossed,
     X,
 } from 'lucide-react';
 import { useState } from 'react';
@@ -24,6 +25,7 @@ const nav = [
     { label: 'Cabanas', route: 'admin.cabanas.index', match: 'admin.cabanas.*', icon: Home },
     { label: 'Packages', route: 'admin.packages.index', match: 'admin.packages.*', icon: Package },
     { label: 'Nearby Places', route: 'admin.places.index', match: 'admin.places.*', icon: MapPin },
+    { label: 'Food Menu', route: 'admin.menu.index', match: 'admin.menu.*', icon: UtensilsCrossed },
     { label: 'Gallery', route: 'admin.gallery.index', match: 'admin.gallery.*', icon: Image },
     { label: 'Messages', route: 'admin.messages.index', match: 'admin.messages.*', icon: Mail, badge: 'unreadMessages' },
     { label: 'Settings', route: 'admin.settings.edit', match: 'admin.settings.*', icon: Settings },

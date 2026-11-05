@@ -97,6 +97,9 @@ export function PlaceCard({ place, className = '' }) {
     );
 }
 
+/** Package prices cover the package's nights, so "/ night" for the usual 1-night packages. */
+export const packageUnit = (pkg) => (pkg.nights > 1 ? `/ ${pkg.nights} nights` : '/ night');
+
 export function PackageCard({ pkg, className = '' }) {
     const href = route('packages.show', pkg.slug);
 
@@ -116,10 +119,12 @@ export function PackageCard({ pkg, className = '' }) {
                 </h3>
                 <p className="mt-2 flex items-center gap-1.5 text-[13px] text-stone-600">
                     <Users className="h-4 w-4 text-gold-600" aria-hidden />
-                    {pkg.nights} Night{pkg.nights > 1 ? 's' : ''} • {pkg.guests} Guests
+                    {pkg.guests} Guests • Full Board
                 </p>
                 <p className="mt-1 text-[13px] text-stone-600">{(pkg.inclusions ?? []).join(' + ')}</p>
-                <p className="mt-3 flex-1 text-xl font-bold text-forest-700">{formatLKR(pkg.price)}</p>
+                <p className="mt-3 flex-1 text-xl font-bold text-forest-700">
+                    {formatLKR(pkg.price)} <span className="text-sm font-normal text-stone-500">{packageUnit(pkg)}</span>
+                </p>
                 <Link href={href} className="btn-primary mt-3 w-full max-w-[220px] rounded-md">
                     View Package <ArrowRight className="h-4 w-4" />
                 </Link>

@@ -27,7 +27,7 @@ export default function PackagesIndex({ packages }) {
                             <p className="mt-1 text-sm text-stone-600">
                                 {formatLKR(p.price)} · {p.nights} night(s) · {p.guests} guests
                             </p>
-                            <p className="text-xs text-stone-500">{p.cabana ? `Uses ${p.cabana.name}` : 'Any cabana'}</p>
+                            <p className="text-xs text-stone-500">{p.cabana ? `Uses ${p.cabana.name}` : `Any ${p.guests}-guest cabana`}</p>
                             <div className="mt-3 flex items-center justify-between">
                                 <Link href={route('admin.packages.edit', p.id)} className="inline-flex items-center gap-1 text-sm font-medium text-forest-700 hover:underline">
                                     <Pencil className="h-4 w-4" /> Edit

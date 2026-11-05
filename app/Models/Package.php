@@ -37,4 +37,15 @@ class Package extends Model
     {
         return $this->belongsTo(Cabana::class);
     }
+
+    /**
+     * Whether the package can be booked in the cabana: its linked cabana if one
+     * is set, otherwise any cabana sized for exactly the package's guests.
+     */
+    public function fitsCabana(Cabana $cabana): bool
+    {
+        return $this->cabana_id
+            ? $this->cabana_id === $cabana->id
+            : $this->guests === $cabana->max_guests;
+    }
 }

@@ -25,7 +25,7 @@ class Setting extends Model
         'hero_image_dark' => '',
         'banner_image' => '',
         'check_in_time' => '2:00 PM',
-        'check_out_time' => '11:00 AM',
+        'check_out_time' => '12:00 PM',
     ];
 
     /** Image settings stored as uploaded paths. */

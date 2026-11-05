@@ -55,15 +55,38 @@ class BookingTest extends TestCase
         $this->get(route('booking.show', $booking->reference))->assertOk();
     }
 
-    public function test_package_price_is_used_with_extra_nights_at_cabana_rate(): void
+    public function test_full_board_package_is_charged_per_night(): void
     {
         Mail::fake();
-        $cabana = Cabana::factory()->create(['price_per_night' => 8000]);
-        $package = Package::factory()->create(['price' => 18000, 'nights' => 1, 'cabana_id' => $cabana->id]);
+        $cabana = Cabana::factory()->create(['price_per_night' => 8000, 'max_guests' => 2]);
+        $package = Package::factory()->create(['price' => 17000, 'nights' => 1, 'guests' => 2]);
 
-        $this->post(route('book.store'), $this->payload($cabana, ['package_id' => $package->id]));
+        $this->post(route('book.store'), $this->payload($cabana, ['package_id' => $package->id]))->assertSessionHasNoErrors();
 
-        $this->assertSame(18000 + 8000, Booking::first()->total_price);
+        $this->assertSame(2 * 17000, Booking::first()->total_price);
+    }
+
+    public function test_package_must_fit_the_cabana_size(): void
+    {
+        Mail::fake();
+        $couple = Cabana::factory()->create(['max_guests' => 2]);
+        $family = Package::factory()->create(['guests' => 4]);
+
+        $this->post(route('book.store'), $this->payload($couple, ['package_id' => $family->id]))
+            ->assertSessionHasErrors('package_id');
+        $this->assertSame(0, Booking::count());
+    }
+
+    public function test_package_linked_to_a_cabana_only_fits_that_cabana(): void
+    {
+        Mail::fake();
+        [$linked, $other] = Cabana::factory()->count(2)->create(['max_guests' => 2]);
+        $package = Package::factory()->create(['guests' => 2, 'cabana_id' => $linked->id]);
+
+        $this->post(route('book.store'), $this->payload($other, ['package_id' => $package->id]))
+            ->assertSessionHasErrors('package_id');
+        $this->post(route('book.store'), $this->payload($linked, ['package_id' => $package->id]))
+            ->assertSessionHasNoErrors();
     }
 
     public function test_cabana_cannot_be_overbooked(): void

@@ -1,3 +1,4 @@
+import { packageUnit } from '@/Components/Site/Cards';
 import Field from '@/Components/Site/Field';
 import ImageWithFallback from '@/Components/Site/ImageWithFallback';
 import PageHeader from '@/Components/Site/PageHeader';
@@ -8,14 +9,18 @@ import axios from 'axios';
 import { AlertTriangle, CalendarCheck, CheckCircle2, Loader2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
+// Mirrors Package::fitsCabana(): the package's linked cabana, or any cabana sized for exactly its guests.
+const fits = (pkg, cabana) => (pkg.cabana_id ? pkg.cabana_id === cabana.id : pkg.guests === cabana.max_guests);
+
 export default function Book({ cabanas, packages, preselect }) {
     const today = toISODate(new Date());
 
-    const initialPackage = packages.find((p) => p.slug === preselect.package);
+    const preselectedPackage = packages.find((p) => p.slug === preselect.package);
     const initialCabana =
         cabanas.find((c) => c.slug === preselect.cabana) ??
-        cabanas.find((c) => c.id === initialPackage?.cabana_id) ??
+        (preselectedPackage && cabanas.find((c) => fits(preselectedPackage, c))) ??
         cabanas[0];
+    const initialPackage = preselectedPackage && initialCabana && fits(preselectedPackage, initialCabana) ? preselectedPackage : null;
 
     const { data, setData, post, processing, errors, transform } = useForm({
         cabana_id: initialCabana?.id ?? '',
@@ -60,19 +65,39 @@ export default function Book({ cabanas, packages, preselect }) {
 
     const estimate = useMemo(() => {
         if (!cabana || nights < 1) return 0;
-        if (pkg) return pkg.price + Math.max(0, nights - pkg.nights) * cabana.price_per_night;
+        if (pkg) {
+            // Full board repeats the package's nightly rate, as in AvailabilityService::quote().
+            const packageNights = Math.max(1, pkg.nights);
+            return Math.round((pkg.price * Math.max(nights, packageNights)) / packageNights);
+        }
         return nights * cabana.price_per_night;
     }, [cabana, pkg, nights]);
     const total = availability.total ?? estimate;
+
+    const chooseCabana = (c) => {
+        setData((d) => {
+            const current = packages.find((p) => p.id === Number(d.package_id));
+            // Keep full board when switching cabanas by moving to the package that fits the new one.
+            const next = current && !fits(current, c) ? packages.find((p) => fits(p, c)) : current;
+            return {
+                ...d,
+                cabana_id: c.id,
+                package_id: next?.id ?? '',
+                guests: Math.min(next && next !== current ? next.guests : d.guests, c.max_guests),
+            };
+        });
+    };
 
     const choosePackage = (id) => {
         const p = packages.find((x) => x.id === Number(id));
         setData((d) => {
             const next = { ...d, package_id: id };
             if (p) {
-                if (p.cabana_id) next.cabana_id = p.cabana_id;
-                next.check_out = addDays(d.check_in, p.nights);
-                next.guests = p.guests;
+                const current = cabanas.find((c) => c.id === Number(d.cabana_id));
+                const target = current && fits(p, current) ? current : cabanas.find((c) => fits(p, c));
+                if (target) next.cabana_id = target.id;
+                next.guests = Math.min(p.guests, target?.max_guests ?? p.guests);
+                if (nightsBetween(d.check_in, d.check_out) < p.nights) next.check_out = addDays(d.check_in, p.nights);
             }
             return next;
         });
@@ -106,37 +131,47 @@ export default function Book({ cabanas, packages, preselect }) {
                             <legend className="sr-only">Stay details</legend>
                             <h2 className="font-display text-2xl font-semibold text-forest-800">1. Your stay</h2>
 
-                            <div className="mt-5 grid gap-3 sm:grid-cols-3">
-                                {cabanas.map((c) => (
-                                    <button
-                                        key={c.id}
-                                        type="button"
-                                        onClick={() =>
-                                            setData((d) => ({ ...d, cabana_id: c.id, guests: Math.min(d.guests, c.max_guests) }))
-                                        }
-                                        className={`overflow-hidden rounded-lg text-left ring-2 transition ${
-                                            Number(data.cabana_id) === c.id ? 'ring-leaf-500' : 'ring-stone-200 hover:ring-forest-300'
-                                        }`}
-                                    >
-                                        <ImageWithFallback src={c.cover_image_url} alt="" className="aspect-[16/9] w-full" />
-                                        <span className="block p-3">
-                                            <span className="block text-sm font-semibold text-stone-900">{c.name}</span>
-                                            <span className="block text-xs text-stone-600">
-                                                {formatLKR(c.price_per_night)} / night · up to {c.max_guests}
+                            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                                {cabanas.map((c) => {
+                                    // With full board chosen, show the package rate this cabana would switch to.
+                                    const tilePackage = pkg && (fits(pkg, c) ? pkg : packages.find((p) => fits(p, c)));
+                                    return (
+                                        <button
+                                            key={c.id}
+                                            type="button"
+                                            onClick={() => chooseCabana(c)}
+                                            className={`overflow-hidden rounded-lg text-left ring-2 transition ${
+                                                Number(data.cabana_id) === c.id ? 'ring-leaf-500' : 'ring-stone-200 hover:ring-forest-300'
+                                            }`}
+                                        >
+                                            <ImageWithFallback src={c.cover_image_url} alt="" className="aspect-[16/9] w-full" />
+                                            <span className="block p-3">
+                                                <span className="block text-sm font-semibold text-stone-900">{c.name}</span>
+                                                <span className="block text-xs text-stone-600">
+                                                    {tilePackage
+                                                        ? `${formatLKR(tilePackage.price)} ${packageUnit(tilePackage)} full board`
+                                                        : `${formatLKR(c.price_per_night)} / night`}{' '}
+                                                    · up to {c.max_guests}
+                                                </span>
                                             </span>
-                                        </span>
-                                    </button>
-                                ))}
+                                        </button>
+                                    );
+                                })}
                             </div>
                             {errors.cabana_id && <p className="mt-2 text-sm text-red-600">{errors.cabana_id}</p>}
 
                             <div className="mt-6 grid gap-4 sm:grid-cols-2">
-                                <Field label="Package (optional)" error={errors.package_id} className="sm:col-span-2">
+                                <Field
+                                    label="Meals"
+                                    error={errors.package_id}
+                                    hint={pkg ? `Includes ${(pkg.inclusions ?? []).join(', ')}` : 'Add breakfast, lunch & dinner with a full board package'}
+                                    className="sm:col-span-2"
+                                >
                                     <select className="input" value={data.package_id} onChange={(e) => choosePackage(e.target.value)}>
-                                        <option value="">Room only</option>
+                                        <option value="">Cabana only</option>
                                         {packages.map((p) => (
                                             <option key={p.id} value={p.id}>
-                                                {p.name} – {formatLKR(p.price)} ({(p.inclusions ?? []).join(', ')})
+                                                {p.name} – {formatLKR(p.price)} {packageUnit(p)}
                                             </option>
                                         ))}
                                     </select>
@@ -245,7 +280,7 @@ export default function Book({ cabanas, packages, preselect }) {
                             <span className="text-sm text-stone-600">Total</span>
                             <span className="text-2xl font-bold text-forest-800">{formatLKR(total)}</span>
                         </div>
-                        <p className="mt-1 text-right text-xs text-stone-500">Pay on arrival</p>
+                        <p className="mt-1 text-right text-xs text-stone-500">Pay on arrival · free welcome drink &amp; bed tea included</p>
 
                         <button type="submit" disabled={processing || unavailable || nights < 1} className="btn-leaf mt-6 w-full">
                             {processing ? <Loader2 className="h-4 w-4 animate-spin" /> : <CalendarCheck className="h-4 w-4" />}

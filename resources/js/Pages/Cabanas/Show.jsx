@@ -133,7 +133,11 @@ export default function CabanaShow({ cabana, others }) {
                         <p className="text-3xl font-bold text-forest-800">
                             {formatLKR(cabana.price_per_night)} <span className="text-base font-normal text-stone-500">/ night</span>
                         </p>
+                        <p className="text-xs text-stone-500">Cabana only · full board packages available</p>
                         <ul className="mt-4 space-y-2 text-sm text-stone-600">
+                            <li className="flex gap-2">
+                                <Check className="h-4 w-4 text-leaf-500" /> Free welcome drink &amp; bed tea
+                            </li>
                             <li className="flex gap-2">
                                 <Check className="h-4 w-4 text-leaf-500" /> Pay on arrival – no card needed
                             </li>

@@ -76,10 +76,11 @@ class AvailabilityService
         $nights = (int) CarbonImmutable::parse($checkIn)->diffInDays(CarbonImmutable::parse($checkOut));
 
         if ($package) {
-            // Package price covers its included nights; extra nights at the cabana rate.
-            $extra = max(0, $nights - $package->nights);
+            // Full-board packages include meals, so longer stays repeat the package's
+            // nightly rate (never less than the package's own nights).
+            $packageNights = max(1, $package->nights);
 
-            return $package->price + $extra * $cabana->price_per_night;
+            return (int) round($package->price * max($nights, $packageNights) / $packageNights);
         }
 
         return $nights * $cabana->price_per_night;
