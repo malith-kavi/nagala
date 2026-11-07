@@ -1,6 +1,6 @@
 import { Amenity } from '@/Components/Site/Amenity';
 import { PlaceCard } from '@/Components/Site/Cards';
-import ImageWithFallback from '@/Components/Site/ImageWithFallback';
+import PhotoGallery from '@/Components/Site/PhotoGallery';
 import Prose from '@/Components/Site/Prose';
 import SectionHeading from '@/Components/Site/SectionHeading';
 import SiteLayout from '@/Layouts/SiteLayout';
@@ -8,13 +8,15 @@ import { Link } from '@inertiajs/react';
 import { ArrowLeft, CalendarDays, Car, ExternalLink, MapPin } from 'lucide-react';
 
 export default function PlaceShow({ place, others }) {
+    const photos = [place.cover_image_url, ...(place.image_urls ?? [])].filter(Boolean).map((url) => ({ url, caption: place.name }));
+
     return (
         <SiteLayout title={place.name}>
             <section className="mx-auto max-w-5xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
                 <Link href={route('places.index')} className="inline-flex items-center gap-1 text-sm text-forest-700 hover:underline">
                     <ArrowLeft className="h-4 w-4" /> All nearby places
                 </Link>
-                <ImageWithFallback src={place.cover_image_url} alt={place.name} label={place.name} className="mt-4 aspect-[16/8] w-full rounded-xl" />
+                <PhotoGallery photos={photos} name={place.name} className="mt-4" />
                 {place.cover_image_url && place.cover_credit && <p className="mt-2 text-right text-xs text-stone-500">{place.cover_credit}</p>}
 
                 <p className="eyebrow mt-8">Explore Around</p>

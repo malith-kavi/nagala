@@ -1,12 +1,13 @@
 import FormActions from '@/Components/Admin/FormActions';
 import ImageInput from '@/Components/Admin/ImageInput';
+import PhotoOrderInput from '@/Components/Admin/PhotoOrderInput';
 import Field from '@/Components/Site/Field';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { useForm } from '@inertiajs/react';
 
 export default function PlaceForm({ place }) {
     const editing = Boolean(place);
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, post, processing, errors, transform } = useForm({
         _method: editing ? 'put' : 'post',
         name: place?.name ?? '',
         slug: place?.slug ?? '',
@@ -21,10 +22,23 @@ export default function PlaceForm({ place }) {
         cover_image: null,
         cover_credit: place?.cover_credit ?? '',
         remove_cover_image: false,
+        photos: (place?.images ?? []).map((path, i) => ({ key: path, path, url: place.image_urls[i], removed: false })),
     });
+
+    const setPhotos = (update) => setData((d) => ({ ...d, photos: update(d.photos) }));
 
     const submit = (e) => {
         e.preventDefault();
+        transform(({ photos, ...rest }) => {
+            const added = photos.filter((p) => p.file);
+            return {
+                ...rest,
+                new_images: added.map((p) => p.file),
+                remove_images: photos.filter((p) => p.path && p.removed).map((p) => p.path),
+                // Final order: saved photos by path, new uploads as "new:<index into new_images>".
+                image_order: photos.filter((p) => !p.removed).map((p) => (p.file ? `new:${added.indexOf(p)}` : p.path)),
+            };
+        });
         post(editing ? route('admin.places.update', place.id) : route('admin.places.store'), { forceFormData: true });
     };
 
@@ -57,7 +71,7 @@ export default function PlaceForm({ place }) {
                         <Field label="Full description" error={errors.description} className="sm:col-span-2">
                             <textarea rows={6} className="input" value={data.description} onChange={(e) => setData('description', e.target.value)} />
                         </Field>
-                        <Field label="Photo credit" error={errors.cover_credit} hint="Shown under the photo on the place page" className="sm:col-span-2">
+                        <Field label="Photo credit" error={errors.cover_credit} hint="Credit for the cover photo, shown on the place page" className="sm:col-span-2">
                             <input className="input" value={data.cover_credit} onChange={(e) => setData('cover_credit', e.target.value)} />
                         </Field>
                         <Field label="Sort order" error={errors.sort_order}>
@@ -68,15 +82,25 @@ export default function PlaceForm({ place }) {
                             Visible on website
                         </label>
                     </div>
-                    <ImageInput
-                        label="Cover photo"
-                        currentUrl={place?.cover_image_url}
-                        file={data.cover_image}
-                        onFile={(f) => setData((d) => ({ ...d, cover_image: f, remove_cover_image: f ? false : d.remove_cover_image }))}
-                        removed={data.remove_cover_image}
-                        onRemove={(v) => setData('remove_cover_image', v)}
-                        error={errors.cover_image}
-                    />
+
+                    <div className="space-y-6">
+                        <ImageInput
+                            label="Cover photo"
+                            currentUrl={place?.cover_image_url}
+                            file={data.cover_image}
+                            onFile={(f) => setData((d) => ({ ...d, cover_image: f, remove_cover_image: f ? false : d.remove_cover_image }))}
+                            removed={data.remove_cover_image}
+                            onRemove={(v) => setData('remove_cover_image', v)}
+                            error={errors.cover_image}
+                        />
+
+                        <PhotoOrderInput
+                            label="More photos"
+                            photos={data.photos}
+                            setPhotos={setPhotos}
+                            error={Object.keys(errors).some((k) => k.startsWith('new_images')) && 'One of the photos is invalid (images up to 8 MB).'}
+                        />
+                    </div>
                 </div>
                 <FormActions processing={processing} cancelHref={route('admin.places.index')} label={editing ? 'Save changes' : 'Create place'} />
             </form>

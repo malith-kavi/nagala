@@ -48,6 +48,9 @@ class NearbyPlaceController extends Controller
     public function destroy(NearbyPlace $place): RedirectResponse
     {
         $this->deleteStored($place->cover_image);
+        foreach ($place->images ?? [] as $path) {
+            $this->deleteStored($path);
+        }
         $place->delete();
 
         return back()->with('success', 'Place deleted.');
@@ -68,15 +71,17 @@ class NearbyPlaceController extends Controller
             'sort_order' => ['nullable', 'integer'],
             'cover_image' => ['nullable', 'image', 'max:8192'],
             'cover_credit' => ['nullable', 'string', 'max:255'],
+            ...$this->imageListRules(),
         ]);
 
         $place->fill([
-            ...collect($data)->except(['cover_image', 'slug'])->all(),
+            ...collect($data)->except(['cover_image', 'new_images', 'remove_images', 'image_order', 'slug'])->all(),
             'slug' => $this->uniqueSlug(NearbyPlace::class, ($data['slug'] ?? null) ?: $data['name'], $place->id),
             'sort_order' => $data['sort_order'] ?? 0,
         ]);
 
         $this->syncCoverImage($request, $place, 'places');
+        $this->syncImages($request, $place, 'places');
 
         // A new or removed photo shouldn't keep the previous photographer's credit.
         if ($place->isDirty('cover_image') && ! $place->isDirty('cover_credit')) {

@@ -256,6 +256,32 @@ class AdminAccessTest extends TestCase
         Storage::disk('uploads')->assertExists($place->fresh()->cover_image);
     }
 
+    public function test_admin_can_add_reorder_and_remove_place_photos(): void
+    {
+        Storage::fake('uploads');
+        Storage::disk('uploads')->put('places/b.jpg', 'old');
+        $admin = User::factory()->admin()->create();
+        $place = NearbyPlace::create(['name' => 'Yapahuwa', 'slug' => 'yapahuwa', 'images' => ['places/a.jpg', 'places/b.jpg']]);
+
+        $this->actingAs($admin)->put(route('admin.places.update', $place), [
+            'name' => 'Yapahuwa',
+            'is_active' => true,
+            'new_images' => [UploadedFile::fake()->image('c.jpg'), UploadedFile::fake()->image('d.jpg')],
+            'remove_images' => ['places/b.jpg'],
+            'image_order' => ['new:1', 'places/a.jpg', 'new:0'],
+        ])->assertRedirect(route('admin.places.index'));
+
+        $images = $place->fresh()->images;
+        $this->assertCount(3, $images);
+        $this->assertSame('places/a.jpg', $images[1]);
+        Storage::disk('uploads')->assertExists([$images[0], $images[2]]);
+        Storage::disk('uploads')->assertMissing('places/b.jpg');
+
+        $this->get(route('places.show', 'yapahuwa'))->assertInertia(fn (Assert $page) => $page
+            ->component('Places/Show')
+            ->where('place.image_urls', array_map(fn ($path) => '/uploads/'.$path, $images)));
+    }
+
     public function test_admin_can_manage_the_food_menu(): void
     {
         $admin = User::factory()->admin()->create();

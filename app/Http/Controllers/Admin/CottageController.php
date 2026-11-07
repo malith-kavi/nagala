@@ -8,7 +8,6 @@ use App\Models\Cottage;
 use App\Models\GalleryImage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -85,11 +84,7 @@ class CottageController extends Controller
             'is_active' => ['boolean'],
             'sort_order' => ['nullable', 'integer'],
             'cover_image' => ['nullable', 'image', 'max:8192'],
-            'new_images' => ['nullable', 'array'],
-            'new_images.*' => ['image', 'max:8192'],
-            'remove_images' => ['nullable', 'array'],
-            'image_order' => ['nullable', 'array'],
-            'image_order.*' => ['string'],
+            ...$this->imageListRules(),
         ]);
 
         $cottage->fill([
@@ -100,13 +95,7 @@ class CottageController extends Controller
         ]);
 
         $this->syncCoverImage($request, $cottage, 'cottages');
-
-        $kept = collect($cottage->images ?? []);
-        $remove = $data['remove_images'] ?? [];
-        $kept->filter(fn ($p) => in_array($p, $remove, true))->each(fn ($p) => $this->deleteStored($p));
-        $kept = $kept->reject(fn ($p) => in_array($p, $remove, true))->values();
-        $uploaded = collect($request->file('new_images', []))->map(fn ($file) => $file->store('cottages', 'uploads'))->values();
-        $cottage->images = $this->orderImages($kept, $uploaded, $data['image_order'] ?? [])->all();
+        $this->syncImages($request, $cottage, 'cottages');
 
         $cottage->save();
         $this->syncGallery($cottage, $before);
@@ -125,24 +114,5 @@ class CottageController extends Controller
         foreach (array_diff($after, $before, $inGallery) as $path) {
             $cottage->galleryImages()->create(['path' => $path, 'caption' => $cottage->name, 'category' => 'cottages']);
         }
-    }
-
-    /**
-     * Arrange photos in the order chosen in the admin form. Order entries are saved
-     * paths, or "new:<n>" for the n-th uploaded file. Anything the order leaves out is kept at the end.
-     */
-    private function orderImages(Collection $kept, Collection $uploaded, array $order): Collection
-    {
-        $ordered = collect($order)
-            ->map(fn ($entry) => str_starts_with($entry, 'new:')
-                ? $uploaded->get((int) substr($entry, 4))
-                : ($kept->contains($entry) ? $entry : null))
-            ->filter()
-            ->unique();
-
-        return $ordered
-            ->concat($kept->diff($ordered))
-            ->concat($uploaded->diff($ordered))
-            ->values();
     }
 }
