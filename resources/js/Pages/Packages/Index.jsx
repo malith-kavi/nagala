@@ -10,7 +10,7 @@ export default function PackagesIndex({ packages }) {
             <PageHeader
                 eyebrow="Full Board"
                 title="Packages & Offers"
-                subtitle="Full board stays — your cabana with breakfast, lunch & dinner, plus a free welcome drink and bed tea."
+                subtitle="Full board stays — your cottage with breakfast, lunch & dinner, plus a free welcome drink and bed tea."
             />
             <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8">
                 <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">

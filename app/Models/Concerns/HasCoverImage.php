@@ -27,11 +27,11 @@ trait HasCoverImage
             return $path;
         }
 
-        // Root-relative for the local public disk so images work on any host/port.
-        if (config('filesystems.disks.public.driver') === 'local') {
-            return '/storage/'.ltrim($path, '/');
+        // Root-relative for the local uploads disk so images work on any host/port.
+        if (config('filesystems.disks.uploads.driver') === 'local') {
+            return '/uploads/'.ltrim($path, '/');
         }
 
-        return Storage::disk('public')->url($path);
+        return Storage::disk('uploads')->url($path);
     }
 }

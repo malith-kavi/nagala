@@ -1,0 +1,30 @@
+<?php
+
+namespace Database\Factories;
+
+use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
+
+/**
+ * @extends Factory<\App\Models\Cottage>
+ */
+class CottageFactory extends Factory
+{
+    public function definition(): array
+    {
+        $name = fake()->unique()->words(2, true).' Cottage';
+
+        return [
+            'name' => Str::title($name),
+            'slug' => Str::slug($name),
+            'short_description' => fake()->sentence(),
+            'description' => fake()->paragraph(),
+            'max_guests' => 3,
+            'beds' => '1 Double Bed',
+            'features' => ['veranda', 'garden_view'],
+            'price_per_night' => 8000,
+            'units' => 1,
+            'is_active' => true,
+        ];
+    }
+}

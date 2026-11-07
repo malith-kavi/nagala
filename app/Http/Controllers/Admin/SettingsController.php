@@ -50,7 +50,7 @@ class SettingsController extends Controller
             }
             if ($file = $request->file($key)) {
                 $this->deleteStored($current[$key] ?: null);
-                $data[$key] = $file->store('site', 'public');
+                $data[$key] = $file->store('site', 'uploads');
             }
         }
 

@@ -66,14 +66,14 @@ const AMENITY_ICONS = [
     [/garden|nature|forest|\btrees?\b/i, Trees],
     [/family/i, UsersRound],
     [/\bbeds?\b/i, BedDouble],
-    [/cabana|room|stay|accommodation/i, House],
+    [/cottage|room|stay|accommodation/i, House],
 ];
 
 export const amenityIcon = (text = '') => AMENITY_ICONS.find(([pattern]) => pattern.test(text))?.[1] ?? Check;
 
-// One icon per key in Cabana::FEATURES and Package::INCLUSIONS (app/Models); a key in both lists means the same thing.
+// One icon per key in Cottage::FEATURES and Package::INCLUSIONS (app/Models); a key in both lists means the same thing.
 const KEY_ICONS = {
-    cabana: House,
+    cottage: House,
     breakfast: Coffee,
     lunch: Soup,
     dinner: Utensils,

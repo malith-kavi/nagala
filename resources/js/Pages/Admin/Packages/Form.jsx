@@ -5,7 +5,7 @@ import Field from '@/Components/Site/Field';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { useForm } from '@inertiajs/react';
 
-export default function PackageForm({ package: pkg, cabanas, inclusionOptions }) {
+export default function PackageForm({ package: pkg, cottages, inclusionOptions }) {
     const editing = Boolean(pkg);
     const olderInclusions = (pkg?.inclusions ?? []).filter((i) => !(i in inclusionOptions));
     const { data, setData, post, processing, errors } = useForm({
@@ -18,7 +18,7 @@ export default function PackageForm({ package: pkg, cabanas, inclusionOptions })
         guests: pkg?.guests ?? 2,
         inclusions: pkg?.inclusions ?? [],
         price: pkg?.price ?? '',
-        cabana_id: pkg?.cabana_id ?? '',
+        cottage_id: pkg?.cottage_id ?? '',
         is_active: pkg?.is_active ?? true,
         sort_order: pkg?.sort_order ?? 0,
         cover_image: null,
@@ -50,10 +50,10 @@ export default function PackageForm({ package: pkg, cabanas, inclusionOptions })
                         <Field label="Price (LKR) *" error={errors.price} hint="Covers the nights below; longer stays repeat this rate">
                             <input type="number" min="0" className="input" value={data.price} onChange={(e) => setData('price', e.target.value)} required />
                         </Field>
-                        <Field label="Cabana used" error={errors.cabana_id} hint="Leave as 'any' to allow every cabana sized for the guests below">
-                            <select className="input" value={data.cabana_id} onChange={(e) => setData('cabana_id', e.target.value)}>
-                                <option value="">Any cabana for this many guests</option>
-                                {cabanas.map((c) => (
+                        <Field label="Cottage used" error={errors.cottage_id} hint="Leave as 'any' to allow every cottage sized for the guests below">
+                            <select className="input" value={data.cottage_id} onChange={(e) => setData('cottage_id', e.target.value)}>
+                                <option value="">Any cottage for this many guests</option>
+                                {cottages.map((c) => (
                                     <option key={c.id} value={c.id}>
                                         {c.name}
                                     </option>

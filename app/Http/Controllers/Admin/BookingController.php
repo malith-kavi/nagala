@@ -19,7 +19,7 @@ class BookingController extends Controller
     {
         $filters = $request->only('status', 'search', 'when');
 
-        $bookings = Booking::with('cabana:id,name', 'package:id,name')
+        $bookings = Booking::with('cottage:id,name', 'package:id,name')
             ->when($filters['status'] ?? null, fn ($q, $status) => $q->where('status', $status))
             ->when($filters['search'] ?? null, fn ($q, $search) => $q->where(fn ($q) => $q
                 ->where('reference', 'like', "%{$search}%")
@@ -42,7 +42,7 @@ class BookingController extends Controller
     public function show(Booking $booking): Response
     {
         return Inertia::render('Admin/Bookings/Show', [
-            'booking' => $booking->load('cabana', 'package'),
+            'booking' => $booking->load('cottage', 'package'),
             'statuses' => Booking::STATUSES,
         ]);
     }
@@ -58,10 +58,10 @@ class BookingController extends Controller
             return back();
         }
 
-        // Re-activating a cancelled booking must not overbook the cabana.
+        // Re-activating a cancelled booking must not overbook the cottage.
         if ($booking->status === Booking::STATUS_CANCELLED
-            && ! $availability->isAvailable($booking->cabana, $booking->check_in->toDateString(), $booking->check_out->toDateString(), $booking->id)) {
-            return back()->with('error', 'Cannot restore this booking: the cabana is fully booked for those dates.');
+            && ! $availability->isAvailable($booking->cottage, $booking->check_in->toDateString(), $booking->check_out->toDateString(), $booking->id)) {
+            return back()->with('error', 'Cannot restore this booking: the cottage is fully booked for those dates.');
         }
 
         $booking->update(['status' => $data['status']]);

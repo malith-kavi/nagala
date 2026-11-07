@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Admin\Concerns\ManagesUploads;
 use App\Http\Controllers\Controller;
-use App\Models\Cabana;
+use App\Models\Cottage;
 use App\Models\Package;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -19,7 +19,7 @@ class PackageController extends Controller
     public function index(): Response
     {
         return Inertia::render('Admin/Packages/Index', [
-            'packages' => Package::with('cabana:id,name')->orderBy('sort_order')->orderBy('id')->get(),
+            'packages' => Package::with('cottage:id,name')->orderBy('sort_order')->orderBy('id')->get(),
         ]);
     }
 
@@ -27,7 +27,7 @@ class PackageController extends Controller
     {
         return Inertia::render('Admin/Packages/Form', [
             'package' => null,
-            'cabanas' => Cabana::orderBy('sort_order')->get(['id', 'name']),
+            'cottages' => Cottage::orderBy('sort_order')->get(['id', 'name']),
             'inclusionOptions' => Package::INCLUSIONS,
         ]);
     }
@@ -43,7 +43,7 @@ class PackageController extends Controller
     {
         return Inertia::render('Admin/Packages/Form', [
             'package' => $package,
-            'cabanas' => Cabana::orderBy('sort_order')->get(['id', 'name']),
+            'cottages' => Cottage::orderBy('sort_order')->get(['id', 'name']),
             'inclusionOptions' => Package::INCLUSIONS,
         ]);
     }
@@ -76,7 +76,7 @@ class PackageController extends Controller
             // Older free-text entries already on this package may stay until the admin unticks them.
             'inclusions.*' => ['string', Rule::in([...array_keys(Package::INCLUSIONS), ...($package->inclusions ?? [])])],
             'price' => ['required', 'integer', 'min:0'],
-            'cabana_id' => ['nullable', 'exists:cabanas,id'],
+            'cottage_id' => ['nullable', 'exists:cottages,id'],
             'is_active' => ['boolean'],
             'sort_order' => ['nullable', 'integer'],
             'cover_image' => ['nullable', 'image', 'max:8192'],

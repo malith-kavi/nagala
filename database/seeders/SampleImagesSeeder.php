@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\Cabana;
+use App\Models\Cottage;
 use App\Models\GalleryImage;
 use App\Models\NearbyPlace;
 use App\Models\Package;
@@ -19,24 +19,24 @@ class SampleImagesSeeder extends Seeder
 
     public function run(): void
     {
-        $cabanas = [
-            'couple-cabana' => ['cabana-standard.jpg', ['cabana-veranda.jpg', 'cabana-interior.jpg', 'cabana-garden.jpg']],
-            'family-cabana-i' => ['cabana-deluxe.jpg', ['cabana-interior.jpg', 'cabana-veranda.jpg', 'nature-hills.jpg']],
-            'large-family-cabana' => ['cabana-family.jpg', ['cabana-garden.jpg', 'cabana-interior.jpg', 'cabana-veranda.jpg']],
-            'family-cabana-ii' => ['cabana-garden.jpg', ['cabana-veranda.jpg', 'cabana-interior.jpg', 'nature-palms.jpg']],
+        $cottages = [
+            'couple-cottage' => ['cabana-standard.jpg', ['cabana-veranda.jpg', 'cabana-interior.jpg', 'cabana-garden.jpg']],
+            'family-cottage-i' => ['cabana-deluxe.jpg', ['cabana-interior.jpg', 'cabana-veranda.jpg', 'nature-hills.jpg']],
+            'large-family-cottage' => ['cabana-family.jpg', ['cabana-garden.jpg', 'cabana-interior.jpg', 'cabana-veranda.jpg']],
+            'family-cottage-ii' => ['cabana-garden.jpg', ['cabana-veranda.jpg', 'cabana-interior.jpg', 'nature-palms.jpg']],
         ];
 
-        foreach ($cabanas as $slug => [$cover, $images]) {
-            $cabana = Cabana::where('slug', $slug)->first();
-            if (! $cabana) {
+        foreach ($cottages as $slug => [$cover, $images]) {
+            $cottage = Cottage::where('slug', $slug)->first();
+            if (! $cottage) {
                 continue;
             }
 
-            $cabana->cover_image ??= self::DIR.$cover;
-            if (empty($cabana->images)) {
-                $cabana->images = array_map(fn ($file) => self::DIR.$file, $images);
+            $cottage->cover_image ??= self::DIR.$cover;
+            if (empty($cottage->images)) {
+                $cottage->images = array_map(fn ($file) => self::DIR.$file, $images);
             }
-            $cabana->save();
+            $cottage->save();
         }
 
         $this->fillCovers(Package::class, [
@@ -81,10 +81,10 @@ class SampleImagesSeeder extends Seeder
         }
 
         $gallery = [
-            ['hero.jpg', 'Our eco cabanas among the gardens', 'cabanas'],
-            ['cabana-standard.jpg', 'The Couple Cabana', 'cabanas'],
-            ['cabana-deluxe.jpg', 'Family Cabana I', 'cabanas'],
-            ['cabana-veranda.jpg', 'A quiet veranda to unwind', 'cabanas'],
+            ['hero.jpg', 'Our eco cottages among the gardens', 'cottages'],
+            ['cabana-standard.jpg', 'The Couple Cottage', 'cottages'],
+            ['cabana-deluxe.jpg', 'Family Cottage I', 'cottages'],
+            ['cabana-veranda.jpg', 'A quiet veranda to unwind', 'cottages'],
             ['banner.jpg', 'Sunset over the hills', 'nature'],
             ['nature-hills.jpg', 'Golden evening over the mountains', 'nature'],
             ['nature-palms.jpg', 'Shady palm groves', 'nature'],

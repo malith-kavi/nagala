@@ -10,7 +10,7 @@ import { useEffect, useState } from 'react';
 
 export const navItems = [
     { label: 'Home', route: 'home', match: 'home' },
-    { label: 'Cabanas', route: 'cabanas.index', match: 'cabanas.*' },
+    { label: 'Cottages', route: 'cottages.index', match: 'cottages.*' },
     { label: 'Packages', route: 'packages.index', match: 'packages.*' },
     { label: 'Dining', route: 'dining', match: 'dining' },
     { label: 'Nearby Places', route: 'places.index', match: 'places.*' },
@@ -27,8 +27,8 @@ function Navbar() {
     return (
         <header className="sticky top-0 z-50 bg-white/95 shadow-sm backdrop-blur">
             <nav className="mx-auto flex h-[72px] max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-                <Link href={route('home')} aria-label="Nagala Eco Cottage home">
-                    <ApplicationLogo />
+                <Link href={route('home')} aria-label="Nagala Eco Cottage home" className="shrink-0">
+                    <ApplicationLogo className="h-12 sm:h-14" />
                 </Link>
 
                 <ul className="hidden items-center gap-8 lg:flex">
@@ -107,7 +107,7 @@ function Footer() {
             <FooterLeaves />
             <div className="relative mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-6 md:grid-cols-[auto_1fr_auto] md:items-center lg:px-8">
                 <Link href={route('home')} className="justify-self-center md:justify-self-start">
-                    <ApplicationLogo light className="scale-110" />
+                    <ApplicationLogo light stacked className="h-36 md:h-40" />
                 </Link>
 
                 <div className="flex flex-col items-center gap-5">

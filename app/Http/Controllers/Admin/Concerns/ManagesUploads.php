@@ -21,14 +21,14 @@ trait ManagesUploads
         $file = $request->file($field);
         if ($file instanceof UploadedFile) {
             $this->deleteStored($model->{$field});
-            $model->{$field} = $file->store($directory, 'public');
+            $model->{$field} = $file->store($directory, 'uploads');
         }
     }
 
     protected function deleteStored(?string $path): void
     {
         if ($path && ! str_starts_with($path, 'http') && ! str_starts_with($path, '/')) {
-            Storage::disk('public')->delete($path);
+            Storage::disk('uploads')->delete($path);
         }
     }
 

@@ -46,7 +46,7 @@ export default function BookingsIndex({ bookings, filters, statuses }) {
                         <tr>
                             <th className="px-4 py-3">Ref</th>
                             <th className="px-4 py-3">Guest</th>
-                            <th className="px-4 py-3">Cabana</th>
+                            <th className="px-4 py-3">Cottage</th>
                             <th className="px-4 py-3">Dates</th>
                             <th className="px-4 py-3">Guests</th>
                             <th className="px-4 py-3">Total</th>
@@ -66,7 +66,7 @@ export default function BookingsIndex({ bookings, filters, statuses }) {
                                     <span className="text-xs text-stone-500">{b.phone}</span>
                                 </td>
                                 <td className="px-4 py-3">
-                                    {b.cabana?.name}
+                                    {b.cottage?.name}
                                     {b.package && <span className="block text-xs text-stone-500">{b.package.name}</span>}
                                 </td>
                                 <td className="whitespace-nowrap px-4 py-3">

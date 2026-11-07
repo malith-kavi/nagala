@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Models\Cabana;
+use App\Models\Cottage;
 use App\Models\GalleryImage;
 use App\Models\MenuSection;
 use App\Models\NearbyPlace;
@@ -38,11 +38,11 @@ class AdminAccessTest extends TestCase
     {
         $this->seed();
         $admin = User::factory()->admin()->create();
-        $cabana = Cabana::first();
+        $cottage = Cottage::first();
 
         foreach ([
-            route('admin.dashboard'), route('admin.bookings.index'), route('admin.cabanas.index'),
-            route('admin.cabanas.create'), route('admin.cabanas.edit', $cabana), route('admin.packages.index'),
+            route('admin.dashboard'), route('admin.bookings.index'), route('admin.cottages.index'),
+            route('admin.cottages.create'), route('admin.cottages.edit', $cottage), route('admin.packages.index'),
             route('admin.packages.create'), route('admin.places.index'), route('admin.places.create'),
             route('admin.menu.index'), route('admin.menu.create'), route('admin.menu.edit', MenuSection::first()),
             route('admin.gallery.index'), route('admin.messages.index'), route('admin.settings.edit'),
@@ -52,12 +52,12 @@ class AdminAccessTest extends TestCase
         }
     }
 
-    public function test_admin_can_create_cabana_with_photos(): void
+    public function test_admin_can_create_cottage_with_photos(): void
     {
-        Storage::fake('public');
+        Storage::fake('uploads');
         $admin = User::factory()->admin()->create();
 
-        $this->actingAs($admin)->post(route('admin.cabanas.store'), [
+        $this->actingAs($admin)->post(route('admin.cottages.store'), [
             'name' => 'Tree House',
             'max_guests' => 2,
             'price_per_night' => 15000,
@@ -66,23 +66,23 @@ class AdminAccessTest extends TestCase
             'is_active' => true,
             'cover_image' => UploadedFile::fake()->image('cover.jpg', 1200, 800),
             'new_images' => [UploadedFile::fake()->image('a.jpg'), UploadedFile::fake()->image('b.jpg')],
-        ])->assertRedirect(route('admin.cabanas.index'));
+        ])->assertRedirect(route('admin.cottages.index'));
 
-        $cabana = Cabana::where('slug', 'tree-house')->firstOrFail();
+        $cottage = Cottage::where('slug', 'tree-house')->firstOrFail();
         // Stored in the site's list order, whatever order they were ticked in.
-        $this->assertSame(['wifi', 'veranda', 'garden_view'], $cabana->features);
-        $this->assertSame('Free Wi-Fi', $cabana->feature_list[0]['label']);
-        $this->assertCount(2, $cabana->images);
-        Storage::disk('public')->assertExists($cabana->cover_image);
+        $this->assertSame(['wifi', 'veranda', 'garden_view'], $cottage->features);
+        $this->assertSame('Free Wi-Fi', $cottage->feature_list[0]['label']);
+        $this->assertCount(2, $cottage->images);
+        Storage::disk('uploads')->assertExists($cottage->cover_image);
 
-        $this->get(route('cabanas.show', 'tree-house'))->assertOk();
+        $this->get(route('cottages.show', 'tree-house'))->assertOk();
     }
 
-    public function test_cabana_features_must_come_from_the_list(): void
+    public function test_cottage_features_must_come_from_the_list(): void
     {
         $admin = User::factory()->admin()->create();
 
-        $this->actingAs($admin)->post(route('admin.cabanas.store'), [
+        $this->actingAs($admin)->post(route('admin.cottages.store'), [
             'name' => 'Tree House',
             'max_guests' => 2,
             'price_per_night' => 15000,
@@ -90,23 +90,23 @@ class AdminAccessTest extends TestCase
             'features' => ['wifi', 'Jacuzzi'],
         ])->assertSessionHasErrors('features.1');
 
-        $this->assertDatabaseMissing('cabanas', ['slug' => 'tree-house']);
+        $this->assertDatabaseMissing('cottages', ['slug' => 'tree-house']);
     }
 
     public function test_older_typed_features_can_be_kept_or_removed(): void
     {
         $admin = User::factory()->admin()->create();
-        $cabana = Cabana::create([
+        $cottage = Cottage::create([
             'name' => 'Tree House', 'slug' => 'tree-house', 'max_guests' => 2, 'price_per_night' => 15000, 'units' => 1,
             'features' => ['Lake Breeze', 'Hammock', 'wifi'],
         ]);
-        $update = fn (array $features) => $this->actingAs($admin)->put(route('admin.cabanas.update', $cabana), [
+        $update = fn (array $features) => $this->actingAs($admin)->put(route('admin.cottages.update', $cottage), [
             'name' => 'Tree House', 'max_guests' => 2, 'price_per_night' => 15000, 'units' => 1, 'features' => $features,
         ]);
 
-        $update(['Lake Breeze', 'parking'])->assertRedirect(route('admin.cabanas.index'));
-        $this->assertSame(['parking', 'Lake Breeze'], $cabana->fresh()->features);
-        $this->assertSame(['key' => 'Lake Breeze', 'label' => 'Lake Breeze'], $cabana->fresh()->feature_list[1]);
+        $update(['Lake Breeze', 'parking'])->assertRedirect(route('admin.cottages.index'));
+        $this->assertSame(['parking', 'Lake Breeze'], $cottage->fresh()->features);
+        $this->assertSame(['key' => 'Lake Breeze', 'label' => 'Lake Breeze'], $cottage->fresh()->feature_list[1]);
 
         // Once removed, an older entry can't be added back.
         $update(['parking', 'Hammock'])->assertSessionHasErrors('features.1');
@@ -117,13 +117,13 @@ class AdminAccessTest extends TestCase
         $admin = User::factory()->admin()->create();
         $package = ['name' => 'Honeymoon', 'nights' => 2, 'guests' => 2, 'price' => 40000];
 
-        $this->actingAs($admin)->post(route('admin.packages.store'), [...$package, 'inclusions' => ['dinner', 'cabana', 'boat_ride', 'breakfast']])
+        $this->actingAs($admin)->post(route('admin.packages.store'), [...$package, 'inclusions' => ['dinner', 'cottage', 'boat_ride', 'breakfast']])
             ->assertRedirect(route('admin.packages.index'));
 
         // Stored in the site's list order, whatever order they were ticked in.
         $saved = Package::where('slug', 'honeymoon')->firstOrFail();
-        $this->assertSame(['cabana', 'breakfast', 'dinner', 'boat_ride'], $saved->inclusions);
-        $this->assertSame('Cabana Stay', $saved->inclusion_list[0]['label']);
+        $this->assertSame(['cottage', 'breakfast', 'dinner', 'boat_ride'], $saved->inclusions);
+        $this->assertSame('Cottage Stay', $saved->inclusion_list[0]['label']);
 
         $this->actingAs($admin)->put(route('admin.packages.update', $saved), [...$package, 'inclusions' => ['breakfast', 'Spa Day']])
             ->assertSessionHasErrors('inclusions.1');
@@ -142,105 +142,105 @@ class AdminAccessTest extends TestCase
         $this->assertSame(['key' => 'Cooking Class', 'label' => 'Cooking Class'], $saved->fresh()->inclusion_list[1]);
     }
 
-    public function test_cabana_photos_join_and_leave_the_gallery(): void
+    public function test_cottage_photos_join_and_leave_the_gallery(): void
     {
-        Storage::fake('public');
+        Storage::fake('uploads');
         $admin = User::factory()->admin()->create();
-        $cabana = ['name' => 'Tree House', 'max_guests' => 2, 'price_per_night' => 15000, 'units' => 1];
-        $galleryPaths = fn (Cabana $c) => $c->galleryImages()->orderBy('path')->pluck('path')->all();
-        $photoPaths = fn (Cabana $c) => collect($c->photoPaths())->sort()->values()->all();
+        $cottage = ['name' => 'Tree House', 'max_guests' => 2, 'price_per_night' => 15000, 'units' => 1];
+        $galleryPaths = fn (Cottage $c) => $c->galleryImages()->orderBy('path')->pluck('path')->all();
+        $photoPaths = fn (Cottage $c) => collect($c->photoPaths())->sort()->values()->all();
 
-        $this->actingAs($admin)->post(route('admin.cabanas.store'), [
-            ...$cabana,
+        $this->actingAs($admin)->post(route('admin.cottages.store'), [
+            ...$cottage,
             'cover_image' => UploadedFile::fake()->image('cover.jpg'),
             'new_images' => [UploadedFile::fake()->image('a.jpg'), UploadedFile::fake()->image('b.jpg')],
-        ])->assertRedirect(route('admin.cabanas.index'));
+        ])->assertRedirect(route('admin.cottages.index'));
 
-        $saved = Cabana::where('slug', 'tree-house')->firstOrFail();
+        $saved = Cottage::where('slug', 'tree-house')->firstOrFail();
         $this->assertCount(3, $galleryPaths($saved));
         $this->assertSame($photoPaths($saved), $galleryPaths($saved));
-        $this->assertSame(['cabanas'], $saved->galleryImages()->distinct()->pluck('category')->all());
+        $this->assertSame(['cottages'], $saved->galleryImages()->distinct()->pluck('category')->all());
         $this->assertSame('Tree House', $saved->galleryImages()->value('caption'));
 
         // Replacing the cover and removing a photo takes both out of the gallery; the new cover joins it.
         [$oldCover, $a, $b] = $saved->photoPaths();
-        $this->actingAs($admin)->put(route('admin.cabanas.update', $saved), [
-            ...$cabana,
+        $this->actingAs($admin)->put(route('admin.cottages.update', $saved), [
+            ...$cottage,
             'cover_image' => UploadedFile::fake()->image('new-cover.jpg'),
             'remove_images' => [$a],
             'image_order' => [$b],
-        ])->assertRedirect(route('admin.cabanas.index'));
+        ])->assertRedirect(route('admin.cottages.index'));
 
         $saved->refresh();
         $this->assertNotSame($oldCover, $saved->cover_image);
         $this->assertSame($photoPaths($saved), $galleryPaths($saved));
 
-        $this->actingAs($admin)->delete(route('admin.cabanas.destroy', $saved));
+        $this->actingAs($admin)->delete(route('admin.cottages.destroy', $saved));
         $this->assertSame(0, GalleryImage::count());
     }
 
-    public function test_removing_a_cabana_photo_from_the_gallery_keeps_it_on_the_cabana(): void
+    public function test_removing_a_cottage_photo_from_the_gallery_keeps_it_on_the_cottage(): void
     {
-        Storage::fake('public');
+        Storage::fake('uploads');
         $admin = User::factory()->admin()->create();
-        $cabana = ['name' => 'Tree House', 'max_guests' => 2, 'price_per_night' => 15000, 'units' => 1];
+        $cottage = ['name' => 'Tree House', 'max_guests' => 2, 'price_per_night' => 15000, 'units' => 1];
 
-        $this->actingAs($admin)->post(route('admin.cabanas.store'), [...$cabana, 'new_images' => [UploadedFile::fake()->image('a.jpg')]]);
-        $saved = Cabana::where('slug', 'tree-house')->firstOrFail();
+        $this->actingAs($admin)->post(route('admin.cottages.store'), [...$cottage, 'new_images' => [UploadedFile::fake()->image('a.jpg')]]);
+        $saved = Cottage::where('slug', 'tree-house')->firstOrFail();
         $image = $saved->galleryImages()->firstOrFail();
 
         $this->actingAs($admin)->delete(route('admin.gallery.destroy', $image))->assertSessionHas('success');
-        Storage::disk('public')->assertExists($image->path);
+        Storage::disk('uploads')->assertExists($image->path);
         $this->assertSame([$image->path], $saved->fresh()->images);
 
-        // Saving the cabana again doesn't put it back.
-        $this->actingAs($admin)->put(route('admin.cabanas.update', $saved), [...$cabana, 'image_order' => [$image->path]]);
+        // Saving the cottage again doesn't put it back.
+        $this->actingAs($admin)->put(route('admin.cottages.update', $saved), [...$cottage, 'image_order' => [$image->path]]);
         $this->assertSame(0, $saved->galleryImages()->count());
     }
 
-    public function test_public_gallery_leaves_out_hidden_cabanas(): void
+    public function test_public_gallery_leaves_out_hidden_cottages(): void
     {
-        $shown = Cabana::factory()->create();
-        $hidden = Cabana::factory()->create(['is_active' => false]);
+        $shown = Cottage::factory()->create();
+        $hidden = Cottage::factory()->create(['is_active' => false]);
         GalleryImage::create(['path' => 'gallery/sunset.jpg', 'category' => 'nature']);
-        GalleryImage::create(['path' => 'cabanas/shown.jpg', 'category' => 'cabanas', 'cabana_id' => $shown->id]);
-        GalleryImage::create(['path' => 'cabanas/hidden.jpg', 'category' => 'cabanas', 'cabana_id' => $hidden->id]);
+        GalleryImage::create(['path' => 'cottages/shown.jpg', 'category' => 'cottages', 'cottage_id' => $shown->id]);
+        GalleryImage::create(['path' => 'cottages/hidden.jpg', 'category' => 'cottages', 'cottage_id' => $hidden->id]);
 
         $this->get(route('gallery'))->assertInertia(fn (Assert $page) => $page
             ->has('images', 2)
-            ->where('images', fn ($images) => collect($images)->pluck('path')->sort()->values()->all() === ['cabanas/shown.jpg', 'gallery/sunset.jpg']));
+            ->where('images', fn ($images) => collect($images)->pluck('path')->sort()->values()->all() === ['cottages/shown.jpg', 'gallery/sunset.jpg']));
     }
 
-    public function test_admin_can_reorder_cabana_photos(): void
+    public function test_admin_can_reorder_cottage_photos(): void
     {
-        Storage::fake('public');
+        Storage::fake('uploads');
         $admin = User::factory()->admin()->create();
-        $cabana = Cabana::create([
+        $cottage = Cottage::create([
             'name' => 'Tree House', 'slug' => 'tree-house', 'max_guests' => 2, 'price_per_night' => 15000, 'units' => 1,
-            'images' => ['cabanas/a.jpg', 'cabanas/b.jpg', 'cabanas/c.jpg'],
+            'images' => ['cottages/a.jpg', 'cottages/b.jpg', 'cottages/c.jpg'],
         ]);
 
-        $this->actingAs($admin)->put(route('admin.cabanas.update', $cabana), [
+        $this->actingAs($admin)->put(route('admin.cottages.update', $cottage), [
             'name' => 'Tree House',
             'max_guests' => 2,
             'price_per_night' => 15000,
             'units' => 1,
             'is_active' => true,
             'new_images' => [UploadedFile::fake()->image('d.jpg')],
-            'remove_images' => ['cabanas/b.jpg'],
-            'image_order' => ['cabanas/c.jpg', 'new:0', 'cabanas/a.jpg'],
-        ])->assertRedirect(route('admin.cabanas.index'));
+            'remove_images' => ['cottages/b.jpg'],
+            'image_order' => ['cottages/c.jpg', 'new:0', 'cottages/a.jpg'],
+        ])->assertRedirect(route('admin.cottages.index'));
 
-        $images = $cabana->fresh()->images;
+        $images = $cottage->fresh()->images;
         $this->assertCount(3, $images);
-        $this->assertSame('cabanas/c.jpg', $images[0]);
-        $this->assertNotContains($images[1], ['cabanas/a.jpg', 'cabanas/b.jpg', 'cabanas/c.jpg']);
-        $this->assertSame('cabanas/a.jpg', $images[2]);
+        $this->assertSame('cottages/c.jpg', $images[0]);
+        $this->assertNotContains($images[1], ['cottages/a.jpg', 'cottages/b.jpg', 'cottages/c.jpg']);
+        $this->assertSame('cottages/a.jpg', $images[2]);
     }
 
     public function test_new_place_photo_clears_the_old_photo_credit(): void
     {
-        Storage::fake('public');
+        Storage::fake('uploads');
         $admin = User::factory()->admin()->create();
         $place = NearbyPlace::create([
             'name' => 'Kala Wewa', 'slug' => 'kala-wewa',
@@ -253,7 +253,7 @@ class AdminAccessTest extends TestCase
 
         $this->put(route('admin.places.update', $place), [...$fields, 'cover_image' => UploadedFile::fake()->image('mine.jpg')]);
         $this->assertNull($place->fresh()->cover_credit);
-        Storage::disk('public')->assertExists($place->fresh()->cover_image);
+        Storage::disk('uploads')->assertExists($place->fresh()->cover_image);
     }
 
     public function test_admin_can_manage_the_food_menu(): void
@@ -285,7 +285,7 @@ class AdminAccessTest extends TestCase
 
     public function test_admin_can_upload_gallery_images_and_update_settings(): void
     {
-        Storage::fake('public');
+        Storage::fake('uploads');
         $admin = User::factory()->admin()->create();
 
         $this->actingAs($admin)->post(route('admin.gallery.store'), [
@@ -302,6 +302,6 @@ class AdminAccessTest extends TestCase
         ])->assertSessionHas('success');
 
         $this->assertSame('+94 70 111 2222', Setting::get('phone'));
-        Storage::disk('public')->assertExists(Setting::get('hero_image'));
+        Storage::disk('uploads')->assertExists(Setting::get('hero_image'));
     }
 }

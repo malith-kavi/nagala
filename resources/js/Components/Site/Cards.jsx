@@ -22,33 +22,33 @@ function CardFooter({ href, price, unit, from = false, cta }) {
     );
 }
 
-export function CabanaCard({ cabana, className = '' }) {
-    const href = route('cabanas.show', cabana.slug);
+export function CottageCard({ cottage, className = '' }) {
+    const href = route('cottages.show', cottage.slug);
 
     return (
         <article className={`card flex flex-col ${className}`}>
             <Link href={href} className="block overflow-hidden">
                 <ImageWithFallback
-                    src={cabana.cover_image_url}
-                    alt={cabana.name}
-                    label={cabana.name}
+                    src={cottage.cover_image_url}
+                    alt={cottage.name}
+                    label={cottage.name}
                     className="aspect-[4/3] w-full transition duration-500 hover:scale-105"
                 />
             </Link>
             <div className="flex flex-1 flex-col p-5">
                 <h3 className="text-lg font-semibold text-stone-900">
-                    <Link href={href}>{cabana.name}</Link>
+                    <Link href={href}>{cottage.name}</Link>
                 </h3>
                 <ul className="mt-3 space-y-1.5 text-[13px]">
-                    <Amenity lead={<Pax count={cabana.max_guests} />}>Sleeps {cabana.max_guests}</Amenity>
-                    {cabana.beds && <Amenity icon={BedDouble}>{cabana.beds}</Amenity>}
-                    {(cabana.feature_list ?? []).slice(0, 2).map((f) => (
+                    <Amenity lead={<Pax count={cottage.max_guests} />}>Sleeps {cottage.max_guests}</Amenity>
+                    {cottage.beds && <Amenity icon={BedDouble}>{cottage.beds}</Amenity>}
+                    {(cottage.feature_list ?? []).slice(0, 2).map((f) => (
                         <Amenity key={f.key} icon={featureIcon(f)}>
                             {f.label}
                         </Amenity>
                     ))}
                 </ul>
-                <CardFooter href={href} price={cabana.price_per_night} unit="/ night" from cta="View Details" />
+                <CardFooter href={href} price={cottage.price_per_night} unit="/ night" from cta="View Details" />
             </div>
         </article>
     );
@@ -95,8 +95,8 @@ export const packageUnit = (pkg) => (pkg.nights > 1 ? `/ ${pkg.nights} nights` :
 
 export function PackageCard({ pkg, className = '' }) {
     const href = route('packages.show', pkg.slug);
-    // The card is already a stay, so the cabana itself isn't listed; meals share one row like a bed/guests line.
-    const inclusions = (pkg.inclusion_list ?? []).filter((i) => i.key !== 'cabana');
+    // The card is already a stay, so the cottage itself isn't listed; meals share one row like a bed/guests line.
+    const inclusions = (pkg.inclusion_list ?? []).filter((i) => i.key !== 'cottage');
     const meals = inclusions.filter((i) => isMeal(i.label));
     const extras = inclusions.filter((i) => !isMeal(i.label));
 

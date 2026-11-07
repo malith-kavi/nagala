@@ -9,26 +9,26 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class GalleryImage extends Model
 {
-    public const CATEGORIES = ['cabanas', 'nature', 'places', 'food', 'activities'];
+    public const CATEGORIES = ['cottages', 'nature', 'places', 'food', 'activities'];
 
-    protected $fillable = ['cabana_id', 'path', 'caption', 'category', 'sort_order'];
+    protected $fillable = ['cottage_id', 'path', 'caption', 'category', 'sort_order'];
 
     protected $appends = ['url'];
 
     protected function url(): Attribute
     {
-        return Attribute::get(fn () => Cabana::publicUrl($this->path));
+        return Attribute::get(fn () => Cottage::publicUrl($this->path));
     }
 
-    /** Set when the photo was added from a cabana; the file belongs to that cabana. */
-    public function cabana(): BelongsTo
+    /** Set when the photo was added from a cottage; the file belongs to that cottage. */
+    public function cottage(): BelongsTo
     {
-        return $this->belongsTo(Cabana::class);
+        return $this->belongsTo(Cottage::class);
     }
 
-    /** What visitors see: uploaded photos, plus photos of cabanas that are on the website. */
+    /** What visitors see: uploaded photos, plus photos of cottages that are on the website. */
     public function scopeVisible(Builder $query): Builder
     {
-        return $query->where(fn ($q) => $q->whereNull('cabana_id')->orWhereHas('cabana', fn ($c) => $c->where('is_active', true)));
+        return $query->where(fn ($q) => $q->whereNull('cottage_id')->orWhereHas('cottage', fn ($c) => $c->where('is_active', true)));
     }
 }

@@ -14,12 +14,12 @@ function ImageRow({ image, categories }) {
         <div className="overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-stone-200">
             <div className="relative">
                 <img src={image.url} alt={image.caption || ''} className="aspect-[4/3] w-full object-cover" />
-                {image.cabana && (
+                {image.cottage && (
                     <Link
-                        href={route('admin.cabanas.edit', image.cabana.id)}
+                        href={route('admin.cottages.edit', image.cottage.id)}
                         className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-white/90 px-2.5 py-1 text-xs font-medium text-forest-800 shadow-sm hover:bg-white"
                     >
-                        <House className="h-3.5 w-3.5" aria-hidden /> From {image.cabana.name}
+                        <House className="h-3.5 w-3.5" aria-hidden /> From {image.cottage.name}
                     </Link>
                 )}
             </div>
@@ -40,7 +40,7 @@ function ImageRow({ image, categories }) {
                     </select>
                     <DeleteButton
                         href={route('admin.gallery.destroy', image.id)}
-                        confirm={image.cabana ? `Remove this photo from the gallery? It stays on the ${image.cabana.name} page.` : 'Delete this photo?'}
+                        confirm={image.cottage ? `Remove this photo from the gallery? It stays on the ${image.cottage.name} page.` : 'Delete this photo?'}
                     />
                 </div>
             </div>
@@ -65,7 +65,7 @@ export default function Gallery({ images, categories }) {
         <AdminLayout title="Gallery">
             <form onSubmit={submit} className="mb-8 rounded-xl bg-white p-5 shadow-sm ring-1 ring-stone-200">
                 <h2 className="font-semibold text-stone-900">Upload photos</h2>
-                <p className="mt-1 text-sm text-stone-500">Photos added to a cabana appear here automatically.</p>
+                <p className="mt-1 text-sm text-stone-500">Photos added to a cottage appear here automatically.</p>
                 <div className="mt-4 grid gap-4 md:grid-cols-[2fr_1fr_1fr_auto] md:items-end">
                     <Field label="Photos (select multiple)" error={errors.images || Object.entries(errors).find(([k]) => k.startsWith('images.'))?.[1]}>
                         <input

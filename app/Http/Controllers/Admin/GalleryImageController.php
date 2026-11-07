@@ -18,7 +18,7 @@ class GalleryImageController extends Controller
     public function index(): Response
     {
         return Inertia::render('Admin/Gallery', [
-            'images' => GalleryImage::with('cabana:id,name')->orderBy('sort_order')->latest('id')->get(),
+            'images' => GalleryImage::with('cottage:id,name')->orderBy('sort_order')->latest('id')->get(),
             'categories' => GalleryImage::CATEGORIES,
         ]);
     }
@@ -34,7 +34,7 @@ class GalleryImageController extends Controller
 
         foreach ($request->file('images') as $file) {
             GalleryImage::create([
-                'path' => $file->store('gallery', 'public'),
+                'path' => $file->store('gallery', 'uploads'),
                 'category' => $data['category'],
                 'caption' => $data['caption'] ?? null,
             ]);
@@ -58,9 +58,9 @@ class GalleryImageController extends Controller
     {
         $image->delete();
 
-        // A cabana's photo is still used on its cabana page, so only its gallery entry goes.
-        if ($image->cabana_id) {
-            return back()->with('success', 'Removed from the gallery. The photo is still on the cabana page.');
+        // A cottage's photo is still used on its cottage page, so only its gallery entry goes.
+        if ($image->cottage_id) {
+            return back()->with('success', 'Removed from the gallery. The photo is still on the cottage page.');
         }
 
         $this->deleteStored($image->path);

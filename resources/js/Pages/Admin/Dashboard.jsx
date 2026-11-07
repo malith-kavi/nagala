@@ -45,7 +45,7 @@ export default function Dashboard({ stats, pendingBookings, upcomingBookings, re
                                 <li key={b.id} className="flex items-center gap-3 py-3">
                                     <Link href={route('admin.bookings.show', b.id)} className="min-w-0 flex-1">
                                         <p className="truncate text-sm font-medium text-stone-900">
-                                            {b.name} · {b.cabana?.name}
+                                            {b.name} · {b.cottage?.name}
                                         </p>
                                         <p className="text-xs text-stone-500">
                                             {formatDate(b.check_in)} → {formatDate(b.check_out)} · {b.guests} guests · {formatLKR(b.total_price)}
@@ -79,7 +79,7 @@ export default function Dashboard({ stats, pendingBookings, upcomingBookings, re
                                         <span>
                                             <span className="block text-sm font-medium text-stone-900">{b.name}</span>
                                             <span className="text-xs text-stone-500">
-                                                {b.cabana?.name} · {b.nights} night{b.nights > 1 ? 's' : ''}
+                                                {b.cottage?.name} · {b.nights} night{b.nights > 1 ? 's' : ''}
                                             </span>
                                         </span>
                                         <span className="text-right text-sm font-medium text-forest-700">{formatDate(b.check_in)}</span>

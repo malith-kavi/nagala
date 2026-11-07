@@ -23,7 +23,7 @@ class NewBookingNotification extends Mailable implements ShouldQueue
 
     public function content(): Content
     {
-        $this->booking->loadMissing('cabana', 'package');
+        $this->booking->loadMissing('cottage', 'package');
 
         return new Content(markdown: 'mail.new-booking');
     }

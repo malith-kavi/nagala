@@ -11,7 +11,7 @@ export default function BookingShow({ booking }) {
     const setStatus = (status) => router.patch(route('admin.bookings.status', booking.id), { status, notify }, { preserveScroll: true });
 
     const rows = [
-        ['Cabana', booking.cabana?.name],
+        ['Cottage', booking.cottage?.name],
         ['Package', booking.package?.name ?? 'Room only'],
         ['Check-in', formatDate(booking.check_in, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })],
         ['Check-out', formatDate(booking.check_out, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })],

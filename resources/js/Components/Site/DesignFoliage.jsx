@@ -286,7 +286,7 @@ export function StripLeaves() {
     );
 }
 
-export function CabanaLeaves() {
+export function CottageLeaves() {
     return (
         <>
             <SketchCorner seed={5} width={150} className="left-0 top-0" />

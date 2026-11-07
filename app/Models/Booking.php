@@ -16,11 +16,11 @@ class Booking extends Model
 
     public const STATUSES = [self::STATUS_PENDING, self::STATUS_CONFIRMED, self::STATUS_CANCELLED];
 
-    /** Statuses that hold a cabana unit. */
+    /** Statuses that hold a cottage unit. */
     public const BLOCKING_STATUSES = [self::STATUS_PENDING, self::STATUS_CONFIRMED];
 
     protected $fillable = [
-        'reference', 'cabana_id', 'package_id', 'check_in', 'check_out', 'guests',
+        'reference', 'cottage_id', 'package_id', 'check_in', 'check_out', 'guests',
         'name', 'email', 'phone', 'notes', 'total_price', 'status',
     ];
 
@@ -69,9 +69,9 @@ class Booking extends Model
         return $query->where('check_in', '<', $checkOut)->where('check_out', '>', $checkIn);
     }
 
-    public function cabana(): BelongsTo
+    public function cottage(): BelongsTo
     {
-        return $this->belongsTo(Cabana::class);
+        return $this->belongsTo(Cottage::class);
     }
 
     public function package(): BelongsTo

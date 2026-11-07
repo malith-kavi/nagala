@@ -9,7 +9,7 @@ import { Link, usePage } from '@inertiajs/react';
 import { ArrowLeft, CalendarDays, Clock, House, Utensils } from 'lucide-react';
 import { Fragment } from 'react';
 
-export default function PackageShow({ package: pkg, cabanas, others }) {
+export default function PackageShow({ package: pkg, cottages, others }) {
     const { settings } = usePage().props;
 
     return (
@@ -34,15 +34,15 @@ export default function PackageShow({ package: pkg, cabanas, others }) {
                         </p>
                         <ul className="mt-5 space-y-2.5 text-sm text-stone-700">
                             <Amenity lead={<Pax count={pkg.guests} />}>{pkg.guests} guests</Amenity>
-                            {cabanas.length > 0 && (
+                            {cottages.length > 0 && (
                                 <li className="flex items-start gap-2">
                                     <House className="mt-0.5 h-4 w-4 shrink-0 text-stone-800" aria-hidden />
                                     <span>
                                         Stay in the{' '}
-                                        {cabanas.map((c, i) => (
+                                        {cottages.map((c, i) => (
                                             <Fragment key={c.id}>
                                                 {i > 0 && ' or '}
-                                                <Link href={route('cabanas.show', c.slug)} className="text-forest-700 underline">
+                                                <Link href={route('cottages.show', c.slug)} className="text-forest-700 underline">
                                                     {c.name}
                                                 </Link>
                                             </Fragment>

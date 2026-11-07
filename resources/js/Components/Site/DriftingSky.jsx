@@ -4,7 +4,7 @@ import CoverBox from '@/Components/Site/CoverBox';
 // - light:    the sky blurred hard sideways, so it keeps the sunset colours but no cloud shapes
 // - screen /
 //   multiply: the clouds' brightening and darkening detail, tiling seamlessly side to side
-// - mask:     opaque over the sky only, so the mountains, sun and cabanas never move
+// - mask:     opaque over the sky only, so the mountains, sun and cottages never move
 // Recombined (light, then screen, then multiply) they reproduce the photo's sky; scrolling the two
 // cloud layers moves the clouds through the still sunset light. A different hero upload has no
 // entry, so it simply shows as a still photo.

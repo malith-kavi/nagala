@@ -2,8 +2,8 @@
 
 use App\Http\Controllers\Admin;
 use App\Http\Controllers\BookingController;
-use App\Http\Controllers\CabanaController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\CottageController;
 use App\Http\Controllers\DiningController;
 use App\Http\Controllers\GalleryController;
 use App\Http\Controllers\HomeController;
@@ -19,8 +19,11 @@ use Illuminate\Support\Facades\Route;
 */
 Route::get('/', HomeController::class)->name('home');
 
-Route::get('/cabanas', [CabanaController::class, 'index'])->name('cabanas.index');
-Route::get('/cabanas/{slug}', [CabanaController::class, 'show'])->name('cabanas.show');
+Route::get('/cottages', [CottageController::class, 'index'])->name('cottages.index');
+Route::get('/cottages/{slug}', [CottageController::class, 'show'])->name('cottages.show');
+// Old addresses from when the cottages were called cabanas (e.g. /cabanas/couple-cabana).
+Route::permanentRedirect('/cabanas', '/cottages');
+Route::get('/cabanas/{slug}', fn (string $slug) => redirect()->route('cottages.show', str_replace('cabana', 'cottage', $slug), 301));
 
 Route::get('/packages', [PackageController::class, 'index'])->name('packages.index');
 Route::get('/packages/{slug}', [PackageController::class, 'show'])->name('packages.show');
@@ -48,7 +51,7 @@ Route::get('/api/availability', [BookingController::class, 'availability'])->mid
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', Admin\DashboardController::class)->name('dashboard');
 
-    Route::resource('cabanas', Admin\CabanaController::class)->except('show');
+    Route::resource('cottages', Admin\CottageController::class)->except('show');
     Route::resource('packages', Admin\PackageController::class)->except('show');
     Route::resource('places', Admin\NearbyPlaceController::class)->except('show');
     Route::resource('menu', Admin\MenuSectionController::class)->parameters(['menu' => 'section'])->except('show');

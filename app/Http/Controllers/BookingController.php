@@ -6,7 +6,7 @@ use App\Http\Requests\StoreBookingRequest;
 use App\Mail\BookingReceived;
 use App\Mail\NewBookingNotification;
 use App\Models\Booking;
-use App\Models\Cabana;
+use App\Models\Cottage;
 use App\Models\Package;
 use App\Services\AvailabilityService;
 use Illuminate\Http\JsonResponse;
@@ -25,10 +25,10 @@ class BookingController extends Controller
     public function create(Request $request): Response
     {
         return Inertia::render('Book', [
-            'cabanas' => Cabana::active()->get(),
+            'cottages' => Cottage::active()->get(),
             'packages' => Package::active()->get(),
             'preselect' => [
-                'cabana' => $request->query('cabana'),
+                'cottage' => $request->query('cottage'),
                 'package' => $request->query('package'),
             ],
         ]);
@@ -37,22 +37,22 @@ class BookingController extends Controller
     public function store(StoreBookingRequest $request): RedirectResponse
     {
         $data = $request->validated();
-        $cabana = Cabana::findOrFail($data['cabana_id']);
+        $cottage = Cottage::findOrFail($data['cottage_id']);
         $package = isset($data['package_id']) ? Package::find($data['package_id']) : null;
 
-        $booking = DB::transaction(function () use ($data, $cabana, $package) {
-            // Lock the cabana row so concurrent requests can't double-book the last unit.
-            Cabana::whereKey($cabana->id)->lockForUpdate()->first();
+        $booking = DB::transaction(function () use ($data, $cottage, $package) {
+            // Lock the cottage row so concurrent requests can't double-book the last unit.
+            Cottage::whereKey($cottage->id)->lockForUpdate()->first();
 
-            if (! $this->availability->isAvailable($cabana, $data['check_in'], $data['check_out'])) {
+            if (! $this->availability->isAvailable($cottage, $data['check_in'], $data['check_out'])) {
                 throw ValidationException::withMessages([
-                    'check_in' => "Sorry, the {$cabana->name} is fully booked for those dates. Please try other dates or another cabana.",
+                    'check_in' => "Sorry, the {$cottage->name} is fully booked for those dates. Please try other dates or another cottage.",
                 ]);
             }
 
             return Booking::create([
                 ...$data,
-                'total_price' => $this->availability->quote($cabana, $package, $data['check_in'], $data['check_out']),
+                'total_price' => $this->availability->quote($cottage, $package, $data['check_in'], $data['check_out']),
                 'status' => Booking::STATUS_PENDING,
             ]);
         });
@@ -65,7 +65,7 @@ class BookingController extends Controller
 
     public function show(string $reference): Response
     {
-        $booking = Booking::with('cabana', 'package')->where('reference', $reference)->firstOrFail();
+        $booking = Booking::with('cottage', 'package')->where('reference', $reference)->firstOrFail();
 
         // Reference links are shareable, so only expose a masked email publicly.
         $booking->setAttribute('email', preg_replace('/(?<=.).(?=[^@]*@)/', '*', $booking->email));
@@ -77,20 +77,20 @@ class BookingController extends Controller
     public function availability(Request $request): JsonResponse
     {
         $data = $request->validate([
-            'cabana_id' => ['required', 'exists:cabanas,id'],
+            'cottage_id' => ['required', 'exists:cottages,id'],
             'package_id' => ['nullable', 'exists:packages,id'],
             'check_in' => ['nullable', 'date'],
             'check_out' => ['nullable', 'date', 'after:check_in'],
         ]);
 
-        $cabana = Cabana::findOrFail($data['cabana_id']);
-        $response = ['blocked_dates' => $this->availability->fullyBookedDates($cabana)];
+        $cottage = Cottage::findOrFail($data['cottage_id']);
+        $response = ['blocked_dates' => $this->availability->fullyBookedDates($cottage)];
 
         if (! empty($data['check_in']) && ! empty($data['check_out'])) {
             $package = ! empty($data['package_id']) ? Package::find($data['package_id']) : null;
-            $response['available'] = $this->availability->isAvailable($cabana, $data['check_in'], $data['check_out']);
-            $response['units_left'] = $this->availability->unitsAvailable($cabana, $data['check_in'], $data['check_out']);
-            $response['total'] = $this->availability->quote($cabana, $package, $data['check_in'], $data['check_out']);
+            $response['available'] = $this->availability->isAvailable($cottage, $data['check_in'], $data['check_out']);
+            $response['units_left'] = $this->availability->unitsAvailable($cottage, $data['check_in'], $data['check_out']);
+            $response['total'] = $this->availability->quote($cottage, $package, $data['check_in'], $data['check_out']);
         }
 
         return response()->json($response);

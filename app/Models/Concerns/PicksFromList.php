@@ -3,7 +3,7 @@
 namespace App\Models\Concerns;
 
 /**
- * For JSON columns of keys picked from a fixed key => label list (cabana features, package inclusions).
+ * For JSON columns of keys picked from a fixed key => label list (cottage features, package inclusions).
  * Text typed in before the lists existed is kept as-is and shown as its own label.
  */
 trait PicksFromList

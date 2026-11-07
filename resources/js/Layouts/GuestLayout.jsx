@@ -5,7 +5,7 @@ export default function GuestLayout({ children }) {
     return (
         <div className="leaf-bg flex min-h-screen flex-col items-center px-4 pt-6 sm:justify-center sm:pt-0">
             <Link href="/">
-                <ApplicationLogo light />
+                <ApplicationLogo light stacked className="h-36 sm:h-44" />
             </Link>
 
             <div className="mt-6 w-full overflow-hidden rounded-xl bg-white px-6 py-6 shadow-xl sm:max-w-md">

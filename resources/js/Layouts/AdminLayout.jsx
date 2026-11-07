@@ -22,7 +22,7 @@ import { useState } from 'react';
 const nav = [
     { label: 'Dashboard', route: 'admin.dashboard', match: 'admin.dashboard', icon: LayoutDashboard },
     { label: 'Bookings', route: 'admin.bookings.index', match: 'admin.bookings.*', icon: CalendarDays, badge: 'pendingBookings' },
-    { label: 'Cabanas', route: 'admin.cabanas.index', match: 'admin.cabanas.*', icon: Home },
+    { label: 'Cottages', route: 'admin.cottages.index', match: 'admin.cottages.*', icon: Home },
     { label: 'Packages', route: 'admin.packages.index', match: 'admin.packages.*', icon: Package },
     { label: 'Nearby Places', route: 'admin.places.index', match: 'admin.places.*', icon: MapPin },
     { label: 'Food Menu', route: 'admin.menu.index', match: 'admin.menu.*', icon: UtensilsCrossed },
@@ -37,8 +37,8 @@ function Sidebar({ onNavigate }) {
 
     return (
         <div className="flex h-full flex-col bg-forest-900 text-cream-100">
-            <Link href={route('admin.dashboard')} className="flex justify-center py-6" onClick={onNavigate}>
-                <ApplicationLogo light />
+            <Link href={route('admin.dashboard')} className="flex justify-center px-4 py-5" onClick={onNavigate}>
+                <ApplicationLogo light className="h-[60px]" />
             </Link>
             <nav className="flex-1 space-y-1 px-3">
                 {nav.map((item) => {

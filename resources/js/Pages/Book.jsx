@@ -10,8 +10,8 @@ import axios from 'axios';
 import { AlertTriangle, CalendarCheck, CalendarDays, Check, CheckCircle2, House, Loader2, Moon, User, Utensils } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
-// Mirrors Package::fitsCabana(): the package's linked cabana, or any cabana sized for exactly its guests.
-const fits = (pkg, cabana) => (pkg.cabana_id ? pkg.cabana_id === cabana.id : pkg.guests === cabana.max_guests);
+// Mirrors Package::fitsCottage(): the package's linked cottage, or any cottage sized for exactly its guests.
+const fits = (pkg, cottage) => (pkg.cottage_id ? pkg.cottage_id === cottage.id : pkg.guests === cottage.max_guests);
 
 function SummaryRow({ icon: Icon, label, children }) {
     return (
@@ -24,29 +24,29 @@ function SummaryRow({ icon: Icon, label, children }) {
     );
 }
 
-export default function Book({ cabanas, packages, preselect }) {
+export default function Book({ cottages, packages, preselect }) {
     const today = toISODate(new Date());
 
     const preselectedPackage = packages.find((p) => p.slug === preselect.package);
-    const initialCabana =
-        cabanas.find((c) => c.slug === preselect.cabana) ??
-        (preselectedPackage && cabanas.find((c) => fits(preselectedPackage, c))) ??
-        cabanas[0];
-    const initialPackage = preselectedPackage && initialCabana && fits(preselectedPackage, initialCabana) ? preselectedPackage : null;
+    const initialCottage =
+        cottages.find((c) => c.slug === preselect.cottage) ??
+        (preselectedPackage && cottages.find((c) => fits(preselectedPackage, c))) ??
+        cottages[0];
+    const initialPackage = preselectedPackage && initialCottage && fits(preselectedPackage, initialCottage) ? preselectedPackage : null;
 
     const { data, setData, post, processing, errors, transform } = useForm({
-        cabana_id: initialCabana?.id ?? '',
+        cottage_id: initialCottage?.id ?? '',
         package_id: initialPackage?.id ?? '',
         check_in: today,
         check_out: addDays(today, initialPackage?.nights ?? 1),
-        guests: Math.min(initialPackage?.guests ?? 2, initialCabana?.max_guests ?? 2),
+        guests: Math.min(initialPackage?.guests ?? 2, initialCottage?.max_guests ?? 2),
         name: '',
         email: '',
         phone: '',
         notes: '',
     });
 
-    const cabana = cabanas.find((c) => c.id === Number(data.cabana_id));
+    const cottage = cottages.find((c) => c.id === Number(data.cottage_id));
     const pkg = packages.find((p) => p.id === Number(data.package_id));
     const nights = nightsBetween(data.check_in, data.check_out);
 
@@ -54,7 +54,7 @@ export default function Book({ cabanas, packages, preselect }) {
 
     // Live availability + price check whenever the stay details change.
     useEffect(() => {
-        if (!data.cabana_id || !data.check_in || !data.check_out || nights < 1) {
+        if (!data.cottage_id || !data.check_in || !data.check_out || nights < 1) {
             setAvailability({ loading: false });
             return;
         }
@@ -63,7 +63,7 @@ export default function Book({ cabanas, packages, preselect }) {
         const t = setTimeout(() => {
             axios
                 .get(route('availability'), {
-                    params: { cabana_id: data.cabana_id, package_id: data.package_id || undefined, check_in: data.check_in, check_out: data.check_out },
+                    params: { cottage_id: data.cottage_id, package_id: data.package_id || undefined, check_in: data.check_in, check_out: data.check_out },
                     signal: controller.signal,
                 })
                 .then(({ data: res }) => setAvailability({ loading: false, ...res }))
@@ -73,27 +73,27 @@ export default function Book({ cabanas, packages, preselect }) {
             clearTimeout(t);
             controller.abort();
         };
-    }, [data.cabana_id, data.package_id, data.check_in, data.check_out, nights]);
+    }, [data.cottage_id, data.package_id, data.check_in, data.check_out, nights]);
 
     const estimate = useMemo(() => {
-        if (!cabana || nights < 1) return 0;
+        if (!cottage || nights < 1) return 0;
         if (pkg) {
             // Full board repeats the package's nightly rate, as in AvailabilityService::quote().
             const packageNights = Math.max(1, pkg.nights);
             return Math.round((pkg.price * Math.max(nights, packageNights)) / packageNights);
         }
-        return nights * cabana.price_per_night;
-    }, [cabana, pkg, nights]);
+        return nights * cottage.price_per_night;
+    }, [cottage, pkg, nights]);
     const total = availability.total ?? estimate;
 
-    const chooseCabana = (c) => {
+    const chooseCottage = (c) => {
         setData((d) => {
             const current = packages.find((p) => p.id === Number(d.package_id));
-            // Keep full board when switching cabanas by moving to the package that fits the new one.
+            // Keep full board when switching cottages by moving to the package that fits the new one.
             const next = current && !fits(current, c) ? packages.find((p) => fits(p, c)) : current;
             return {
                 ...d,
-                cabana_id: c.id,
+                cottage_id: c.id,
                 package_id: next?.id ?? '',
                 guests: Math.min(next && next !== current ? next.guests : d.guests, c.max_guests),
             };
@@ -105,9 +105,9 @@ export default function Book({ cabanas, packages, preselect }) {
         setData((d) => {
             const next = { ...d, package_id: id };
             if (p) {
-                const current = cabanas.find((c) => c.id === Number(d.cabana_id));
-                const target = current && fits(p, current) ? current : cabanas.find((c) => fits(p, c));
-                if (target) next.cabana_id = target.id;
+                const current = cottages.find((c) => c.id === Number(d.cottage_id));
+                const target = current && fits(p, current) ? current : cottages.find((c) => fits(p, c));
+                if (target) next.cottage_id = target.id;
                 next.guests = Math.min(p.guests, target?.max_guests ?? p.guests);
                 if (nightsBetween(d.check_in, d.check_out) < p.nights) next.check_out = addDays(d.check_in, p.nights);
             }
@@ -133,7 +133,7 @@ export default function Book({ cabanas, packages, preselect }) {
 
     return (
         <SiteLayout title="Book Your Stay">
-            <PageHeader eyebrow="Reservations" title="Book Your Stay" subtitle="Reserve your cabana in a few steps. No payment needed now — pay on arrival." />
+            <PageHeader eyebrow="Reservations" title="Book Your Stay" subtitle="Reserve your cottage in a few steps. No payment needed now — pay on arrival." />
 
             <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:px-8">
                 <form onSubmit={submit} className="grid gap-8 lg:grid-cols-[1fr_360px]">
@@ -144,16 +144,16 @@ export default function Book({ cabanas, packages, preselect }) {
                             <h2 className="font-display text-2xl font-semibold text-forest-800">1. Your stay</h2>
 
                             <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                                {cabanas.map((c) => {
-                                    // With full board chosen, show the package rate this cabana would switch to.
+                                {cottages.map((c) => {
+                                    // With full board chosen, show the package rate this cottage would switch to.
                                     const tilePackage = pkg && (fits(pkg, c) ? pkg : packages.find((p) => fits(p, c)));
                                     return (
                                         <button
                                             key={c.id}
                                             type="button"
-                                            onClick={() => chooseCabana(c)}
+                                            onClick={() => chooseCottage(c)}
                                             className={`overflow-hidden rounded-lg text-left ring-2 transition ${
-                                                Number(data.cabana_id) === c.id ? 'ring-leaf-500' : 'ring-stone-200 hover:ring-forest-300'
+                                                Number(data.cottage_id) === c.id ? 'ring-leaf-500' : 'ring-stone-200 hover:ring-forest-300'
                                             }`}
                                         >
                                             <ImageWithFallback src={c.cover_image_url} alt="" className="aspect-[16/9] w-full" />
@@ -170,7 +170,7 @@ export default function Book({ cabanas, packages, preselect }) {
                                     );
                                 })}
                             </div>
-                            {errors.cabana_id && <p className="mt-2 text-sm text-red-600">{errors.cabana_id}</p>}
+                            {errors.cottage_id && <p className="mt-2 text-sm text-red-600">{errors.cottage_id}</p>}
 
                             <div className="mt-6 grid gap-4 sm:grid-cols-2">
                                 <Field
@@ -180,7 +180,7 @@ export default function Book({ cabanas, packages, preselect }) {
                                     className="sm:col-span-2"
                                 >
                                     <select className="input" value={data.package_id} onChange={(e) => choosePackage(e.target.value)}>
-                                        <option value="">Cabana only</option>
+                                        <option value="">Cottage only</option>
                                         {packages.map((p) => (
                                             <option key={p.id} value={p.id}>
                                                 {p.name} – {formatLKR(p.price)} {packageUnit(p)}
@@ -201,9 +201,9 @@ export default function Book({ cabanas, packages, preselect }) {
                                         required
                                     />
                                 </Field>
-                                <Field label="Guests" error={errors.guests} hint={cabana ? `${cabana.name} sleeps up to ${cabana.max_guests}` : null}>
+                                <Field label="Guests" error={errors.guests} hint={cottage ? `${cottage.name} sleeps up to ${cottage.max_guests}` : null}>
                                     <select className="input" value={data.guests} onChange={(e) => setData('guests', Number(e.target.value))}>
-                                        {Array.from({ length: cabana?.max_guests ?? 2 }, (_, i) => i + 1).map((n) => (
+                                        {Array.from({ length: cottage?.max_guests ?? 2 }, (_, i) => i + 1).map((n) => (
                                             <option key={n} value={n}>
                                                 {n} guest{n > 1 ? 's' : ''}
                                             </option>
@@ -224,7 +224,7 @@ export default function Book({ cabanas, packages, preselect }) {
                                     </span>
                                 ) : unavailable ? (
                                     <span className="flex items-center gap-2 font-medium text-red-600">
-                                        <AlertTriangle className="h-4 w-4" /> Fully booked for these dates. Please try other dates or another cabana.
+                                        <AlertTriangle className="h-4 w-4" /> Fully booked for these dates. Please try other dates or another cottage.
                                     </span>
                                 ) : null}
                             </div>
@@ -263,8 +263,8 @@ export default function Book({ cabanas, packages, preselect }) {
                             <CalendarCheck className="h-6 w-6" /> Summary
                         </h2>
                         <dl className="mt-5 space-y-3 text-sm">
-                            <SummaryRow icon={House} label="Cabana">
-                                {cabana?.name ?? '—'}
+                            <SummaryRow icon={House} label="Cottage">
+                                {cottage?.name ?? '—'}
                             </SummaryRow>
                             {pkg && (
                                 <SummaryRow icon={Utensils} label="Package">

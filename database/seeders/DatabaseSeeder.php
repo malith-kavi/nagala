@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\Cabana;
+use App\Models\Cottage;
 use App\Models\MenuSection;
 use App\Models\NearbyPlace;
 use App\Models\Package;
@@ -30,48 +30,48 @@ class DatabaseSeeder extends Seeder
             ],
         );
 
-        // Content from the first version of the site. Deleting a cabana also deletes its bookings.
+        // Content from the first version of the site. Deleting a cottage also deletes its bookings.
         Package::whereIn('slug', ['couple-package', 'family-package', 'adventure-package'])->delete();
-        Cabana::whereIn('slug', ['standard-cabana', 'deluxe-cabana', 'family-cabana'])->delete();
+        Cottage::whereIn('slug', ['standard-cottage', 'deluxe-cottage', 'family-cottage'])->delete();
         NearbyPlace::whereIn('slug', ['nikawewa-reservoir', 'village-experiences'])->delete();
 
         $perks = ['welcome_drink', 'bed_tea'];
 
-        $cabanas = [
+        $cottages = [
             [
-                'name' => 'Couple Cabana',
-                'short_description' => 'A cosy cabana for two, surrounded by tropical greenery.',
-                'description' => "Our Couple Cabana is a cosy retreat for two, set among the greenery beneath Nagala rock. Every stay includes a free welcome drink on arrival and bed tea in the morning.\n\nThe price shown is for the cabana only. Prefer your meals taken care of? Choose the Couple Full Board package with breakfast, lunch and dinner of traditional Sri Lankan home cooking.",
+                'name' => 'Couple Cottage',
+                'short_description' => 'A cosy cottage for two, surrounded by tropical greenery.',
+                'description' => "Our Couple Cottage is a cosy retreat for two, set among the greenery beneath Nagala rock. Every stay includes a free welcome drink on arrival and bed tea in the morning.\n\nThe price shown is for the cottage only. Prefer your meals taken care of? Choose the Couple Full Board package with breakfast, lunch and dinner of traditional Sri Lankan home cooking.",
                 'max_guests' => 2,
                 'price_per_night' => 8000,
             ],
             [
-                'name' => 'Family Cabana I',
-                'short_description' => 'A comfortable cabana for families or friends — sleeps up to 4.',
-                'description' => "Family Cabana I has room for up to four guests — ideal for a family or a small group of friends. Every stay includes a free welcome drink on arrival and bed tea in the morning.\n\nThe price shown is for the cabana only. Add breakfast, lunch and dinner with the Family Full Board package for 4 guests.",
+                'name' => 'Family Cottage I',
+                'short_description' => 'A comfortable cottage for families or friends — sleeps up to 4.',
+                'description' => "Family Cottage I has room for up to four guests — ideal for a family or a small group of friends. Every stay includes a free welcome drink on arrival and bed tea in the morning.\n\nThe price shown is for the cottage only. Add breakfast, lunch and dinner with the Family Full Board package for 4 guests.",
                 'max_guests' => 4,
                 'price_per_night' => 12000,
             ],
             [
-                'name' => 'Large Family Cabana',
-                'short_description' => 'Our largest cabana — room for the whole family, up to 5 guests.',
-                'description' => "The Large Family Cabana is our most spacious stay, sleeping up to five guests. Every stay includes a free welcome drink on arrival and bed tea in the morning.\n\nThe price shown is for the cabana only. Add breakfast, lunch and dinner with the Family Full Board package for 5 guests.",
+                'name' => 'Large Family Cottage',
+                'short_description' => 'Our largest cottage — room for the whole family, up to 5 guests.',
+                'description' => "The Large Family Cottage is our most spacious stay, sleeping up to five guests. Every stay includes a free welcome drink on arrival and bed tea in the morning.\n\nThe price shown is for the cottage only. Add breakfast, lunch and dinner with the Family Full Board package for 5 guests.",
                 'max_guests' => 5,
                 'price_per_night' => 15000,
             ],
             [
-                'name' => 'Family Cabana II',
-                'short_description' => 'A second family cabana for up to 4 guests.',
-                'description' => "Family Cabana II has room for up to four guests — perfect for families or small groups. Every stay includes a free welcome drink on arrival and bed tea in the morning.\n\nThe price shown is for the cabana only. Add breakfast, lunch and dinner with the Family Full Board package for 4 guests.",
+                'name' => 'Family Cottage II',
+                'short_description' => 'A second family cottage for up to 4 guests.',
+                'description' => "Family Cottage II has room for up to four guests — perfect for families or small groups. Every stay includes a free welcome drink on arrival and bed tea in the morning.\n\nThe price shown is for the cottage only. Add breakfast, lunch and dinner with the Family Full Board package for 4 guests.",
                 'max_guests' => 4,
                 'price_per_night' => 12000,
             ],
         ];
 
-        foreach ($cabanas as $i => $cabana) {
-            Cabana::updateOrCreate(
-                ['slug' => str($cabana['name'])->slug()->toString()],
-                [...$cabana, 'features' => $perks, 'units' => 1, 'sort_order' => $i, 'is_active' => true],
+        foreach ($cottages as $i => $cottage) {
+            Cottage::updateOrCreate(
+                ['slug' => str($cottage['name'])->slug()->toString()],
+                [...$cottage, 'features' => $perks, 'units' => 1, 'sort_order' => $i, 'is_active' => true],
             );
         }
 
@@ -80,20 +80,20 @@ class DatabaseSeeder extends Seeder
         $packages = [
             [
                 'name' => 'Couple Full Board',
-                'short_description' => 'The Couple Cabana with breakfast, lunch and dinner for two.',
-                'description' => "A relaxed full board stay for two in our Couple Cabana. Enjoy breakfast, lunch and dinner of traditional Sri Lankan home cooking, plus a free welcome drink on arrival and bed tea in the morning.\n\nLKR 17,000 per night: LKR 8,000 for the cabana + LKR 9,000 for meals for two.\n\n{$stay}",
+                'short_description' => 'The Couple Cottage with breakfast, lunch and dinner for two.',
+                'description' => "A relaxed full board stay for two in our Couple Cottage. Enjoy breakfast, lunch and dinner of traditional Sri Lankan home cooking, plus a free welcome drink on arrival and bed tea in the morning.\n\nLKR 17,000 per night: LKR 8,000 for the cottage + LKR 9,000 for meals for two.\n\n{$stay}",
                 'guests' => 2, 'price' => 17000,
             ],
             [
                 'name' => 'Family Full Board – 4 Guests',
-                'short_description' => 'A family cabana for 4 with breakfast, lunch and dinner.',
-                'description' => "A full board family stay in Family Cabana I or II. Enjoy breakfast, lunch and dinner of traditional Sri Lankan home cooking, plus a free welcome drink on arrival and bed tea in the morning.\n\nLKR 30,000 per night: LKR 12,000 for the cabana + LKR 18,000 for meals for four.\n\n{$stay}",
+                'short_description' => 'A family cottage for 4 with breakfast, lunch and dinner.',
+                'description' => "A full board family stay in Family Cottage I or II. Enjoy breakfast, lunch and dinner of traditional Sri Lankan home cooking, plus a free welcome drink on arrival and bed tea in the morning.\n\nLKR 30,000 per night: LKR 12,000 for the cottage + LKR 18,000 for meals for four.\n\n{$stay}",
                 'guests' => 4, 'price' => 30000,
             ],
             [
                 'name' => 'Family Full Board – 5 Guests',
-                'short_description' => 'Our Large Family Cabana for 5 with breakfast, lunch and dinner.',
-                'description' => "A full board stay for the whole family in our Large Family Cabana. Enjoy breakfast, lunch and dinner of traditional Sri Lankan home cooking, plus a free welcome drink on arrival and bed tea in the morning.\n\nLKR 37,500 per night: LKR 15,000 for the cabana + LKR 22,500 for meals for five.\n\n{$stay}",
+                'short_description' => 'Our Large Family Cottage for 5 with breakfast, lunch and dinner.',
+                'description' => "A full board stay for the whole family in our Large Family Cottage. Enjoy breakfast, lunch and dinner of traditional Sri Lankan home cooking, plus a free welcome drink on arrival and bed tea in the morning.\n\nLKR 37,500 per night: LKR 15,000 for the cottage + LKR 22,500 for meals for five.\n\n{$stay}",
                 'guests' => 5, 'price' => 37500,
             ],
         ];
@@ -104,8 +104,8 @@ class DatabaseSeeder extends Seeder
                 [
                     ...$package,
                     'nights' => 1,
-                    'cabana_id' => null,
-                    'inclusions' => ['cabana', 'breakfast', 'lunch', 'dinner', ...$perks],
+                    'cottage_id' => null,
+                    'inclusions' => ['cottage', 'breakfast', 'lunch', 'dinner', ...$perks],
                     'sort_order' => $i,
                     'is_active' => true,
                 ],

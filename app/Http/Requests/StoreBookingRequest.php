@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests;
 
-use App\Models\Cabana;
+use App\Models\Cottage;
 use App\Models\Package;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
@@ -17,7 +17,7 @@ class StoreBookingRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'cabana_id' => ['required', 'exists:cabanas,id'],
+            'cottage_id' => ['required', 'exists:cottages,id'],
             'package_id' => ['nullable', 'exists:packages,id'],
             'check_in' => ['required', 'date', 'after_or_equal:today'],
             'check_out' => ['required', 'date', 'after:check_in', 'before:'.now()->addYear()->addDay()->toDateString()],
@@ -33,24 +33,24 @@ class StoreBookingRequest extends FormRequest
     {
         return [
             function (Validator $validator) {
-                $cabana = Cabana::active()->find($this->input('cabana_id'));
+                $cottage = Cottage::active()->find($this->input('cottage_id'));
 
-                if (! $cabana) {
-                    $validator->errors()->add('cabana_id', 'Please choose an available cabana.');
+                if (! $cottage) {
+                    $validator->errors()->add('cottage_id', 'Please choose an available cottage.');
 
                     return;
                 }
 
-                if ((int) $this->input('guests') > $cabana->max_guests) {
-                    $validator->errors()->add('guests', "The {$cabana->name} sleeps up to {$cabana->max_guests} guests.");
+                if ((int) $this->input('guests') > $cottage->max_guests) {
+                    $validator->errors()->add('guests', "The {$cottage->name} sleeps up to {$cottage->max_guests} guests.");
                 }
 
                 $package = $this->filled('package_id') ? Package::find($this->input('package_id')) : null;
 
-                if ($package && ! $package->fitsCabana($cabana)) {
-                    $validator->errors()->add('package_id', $package->cabana_id
-                        ? "The {$package->name} is only available in the {$package->cabana?->name}."
-                        : "The {$package->name} is for our {$package->guests}-guest cabanas.");
+                if ($package && ! $package->fitsCottage($cottage)) {
+                    $validator->errors()->add('package_id', $package->cottage_id
+                        ? "The {$package->name} is only available in the {$package->cottage?->name}."
+                        : "The {$package->name} is for our {$package->guests}-guest cottages.");
                 }
             },
         ];

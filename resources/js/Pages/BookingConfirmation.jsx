@@ -16,7 +16,7 @@ export default function BookingConfirmation({ booking }) {
 
     const rows = [
         ['Reference', booking.reference],
-        ['Cabana', booking.cabana?.name],
+        ['Cottage', booking.cottage?.name],
         booking.package && ['Package', booking.package.name],
         ['Check-in', `${formatDate(booking.check_in)} · from ${settings.check_in_time}`],
         ['Check-out', `${formatDate(booking.check_out)} · by ${settings.check_out_time}`],

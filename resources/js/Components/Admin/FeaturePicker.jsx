@@ -1,7 +1,7 @@
 import { featureIcon } from '@/Components/Site/Amenity';
 
 /**
- * Tick-box grid for picking from a fixed list (key => label), e.g. cabana features or package inclusions,
+ * Tick-box grid for picking from a fixed list (key => label), e.g. cottage features or package inclusions,
  * each shown with the icon the site uses.
  * `older` holds free-text entries saved before the list existed, so they can be kept or unticked.
  */

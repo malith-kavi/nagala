@@ -70,7 +70,7 @@ class Setting extends Model
         $values = static::allValues();
 
         foreach (self::IMAGE_KEYS as $key) {
-            $values[$key.'_url'] = Cabana::publicUrl($values[$key] ?: null);
+            $values[$key.'_url'] = Cottage::publicUrl($values[$key] ?: null);
         }
 
         return $values;

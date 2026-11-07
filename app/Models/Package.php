@@ -16,10 +16,10 @@ class Package extends Model
 
     /**
      * What a package can include, in the order the site lists them. Each key has a matching icon in
-     * resources/js/Components/Site/Amenity.jsx; keys shared with Cabana::FEATURES mean the same thing.
+     * resources/js/Components/Site/Amenity.jsx; keys shared with Cottage::FEATURES mean the same thing.
      */
     public const INCLUSIONS = [
-        'cabana' => 'Cabana Stay',
+        'cottage' => 'Cottage Stay',
         'breakfast' => 'Breakfast',
         'lunch' => 'Lunch',
         'dinner' => 'Dinner',
@@ -42,7 +42,7 @@ class Package extends Model
 
     protected $fillable = [
         'name', 'slug', 'short_description', 'description', 'nights', 'guests',
-        'inclusions', 'price', 'cabana_id', 'cover_image', 'is_active', 'sort_order',
+        'inclusions', 'price', 'cottage_id', 'cover_image', 'is_active', 'sort_order',
     ];
 
     protected $appends = ['inclusion_list'];
@@ -78,19 +78,19 @@ class Package extends Model
         return $query->where('is_active', true)->orderBy('sort_order')->orderBy('id');
     }
 
-    public function cabana(): BelongsTo
+    public function cottage(): BelongsTo
     {
-        return $this->belongsTo(Cabana::class);
+        return $this->belongsTo(Cottage::class);
     }
 
     /**
-     * Whether the package can be booked in the cabana: its linked cabana if one
-     * is set, otherwise any cabana sized for exactly the package's guests.
+     * Whether the package can be booked in the cottage: its linked cottage if one
+     * is set, otherwise any cottage sized for exactly the package's guests.
      */
-    public function fitsCabana(Cabana $cabana): bool
+    public function fitsCottage(Cottage $cottage): bool
     {
-        return $this->cabana_id
-            ? $this->cabana_id === $cabana->id
-            : $this->guests === $cabana->max_guests;
+        return $this->cottage_id
+            ? $this->cottage_id === $cottage->id
+            : $this->guests === $cottage->max_guests;
     }
 }

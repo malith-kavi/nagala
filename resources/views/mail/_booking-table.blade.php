@@ -2,7 +2,7 @@
 | | |
 |:--|:--|
 | **Reference** | {{ $booking->reference }} |
-| **Cabana** | {{ $booking->cabana->name }} |
+| **Cottage** | {{ $booking->cottage->name }} |
 @if ($booking->package)
 | **Package** | {{ $booking->package->name }} |
 @endif

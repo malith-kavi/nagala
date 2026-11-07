@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Cabana;
+use App\Models\Cottage;
 use App\Models\Package;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -22,7 +22,7 @@ class PackageController extends Controller
 
         return Inertia::render('Packages/Show', [
             'package' => $package,
-            'cabanas' => Cabana::active()->get()->filter(fn (Cabana $c) => $package->fitsCabana($c))->values(),
+            'cottages' => Cottage::active()->get()->filter(fn (Cottage $c) => $package->fitsCottage($c))->values(),
             'others' => Package::active()->whereKeyNot($package->id)->get(),
         ]);
     }

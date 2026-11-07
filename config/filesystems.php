@@ -47,6 +47,17 @@ return [
             'report' => false,
         ],
 
+        // Admin uploads are written straight into public/uploads so they are served
+        // without `storage:link` (shared hosting such as Hostinger has no symlinks).
+        'uploads' => [
+            'driver' => 'local',
+            'root' => public_path('uploads'),
+            'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/uploads',
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => false,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

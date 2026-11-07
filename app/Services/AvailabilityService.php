@@ -3,7 +3,7 @@
 namespace App\Services;
 
 use App\Models\Booking;
-use App\Models\Cabana;
+use App\Models\Cottage;
 use App\Models\Package;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonPeriod;
@@ -11,11 +11,11 @@ use Carbon\CarbonPeriod;
 class AvailabilityService
 {
     /**
-     * Number of units of the cabana still free for every night in the range.
+     * Number of units of the cottage still free for every night in the range.
      */
-    public function unitsAvailable(Cabana $cabana, string $checkIn, string $checkOut, ?int $ignoreBookingId = null): int
+    public function unitsAvailable(Cottage $cottage, string $checkIn, string $checkOut, ?int $ignoreBookingId = null): int
     {
-        $bookings = $cabana->bookings()
+        $bookings = $cottage->bookings()
             ->blocking()
             ->overlapping($checkIn, $checkOut)
             ->when($ignoreBookingId, fn ($q) => $q->whereKeyNot($ignoreBookingId))
@@ -31,25 +31,25 @@ class AvailabilityService
             $peak = max($peak, $occupied);
         }
 
-        return max(0, $cabana->units - $peak);
+        return max(0, $cottage->units - $peak);
     }
 
-    public function isAvailable(Cabana $cabana, string $checkIn, string $checkOut, ?int $ignoreBookingId = null): bool
+    public function isAvailable(Cottage $cottage, string $checkIn, string $checkOut, ?int $ignoreBookingId = null): bool
     {
-        return $this->unitsAvailable($cabana, $checkIn, $checkOut, $ignoreBookingId) > 0;
+        return $this->unitsAvailable($cottage, $checkIn, $checkOut, $ignoreBookingId) > 0;
     }
 
     /**
-     * Nights (Y-m-d) in the next $days where every unit of the cabana is taken.
+     * Nights (Y-m-d) in the next $days where every unit of the cottage is taken.
      *
      * @return list<string>
      */
-    public function fullyBookedDates(Cabana $cabana, int $days = 365): array
+    public function fullyBookedDates(Cottage $cottage, int $days = 365): array
     {
         $from = CarbonImmutable::today();
         $to = $from->addDays($days);
 
-        $bookings = $cabana->bookings()
+        $bookings = $cottage->bookings()
             ->blocking()
             ->overlapping($from->toDateString(), $to->toDateString())
             ->get(['check_in', 'check_out']);
@@ -64,14 +64,14 @@ class AvailabilityService
         }
 
         return collect($counts)
-            ->filter(fn ($count) => $count >= $cabana->units)
+            ->filter(fn ($count) => $count >= $cottage->units)
             ->keys()
             ->sort()
             ->values()
             ->all();
     }
 
-    public function quote(Cabana $cabana, ?Package $package, string $checkIn, string $checkOut): int
+    public function quote(Cottage $cottage, ?Package $package, string $checkIn, string $checkOut): int
     {
         $nights = (int) CarbonImmutable::parse($checkIn)->diffInDays(CarbonImmutable::parse($checkOut));
 
@@ -83,6 +83,6 @@ class AvailabilityService
             return (int) round($package->price * max($nights, $packageNights) / $packageNights);
         }
 
-        return $nights * $cabana->price_per_night;
+        return $nights * $cottage->price_per_night;
     }
 }
