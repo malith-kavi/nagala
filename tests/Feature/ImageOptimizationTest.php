@@ -52,8 +52,8 @@ class ImageOptimizationTest extends TestCase
         $this->assertStringEndsWith('.webp', $path);
 
         $disk = Storage::disk('uploads');
-        [$full, $small, $medium] = $this->files($path);
-        foreach ([$full => [2048, 1365], $small => [640, 427], $medium => [1280, 853]] as $file => $size) {
+        [$full, $tile, $small, $medium] = $this->files($path);
+        foreach ([$full => [2048, 1365], $tile => [480, 320], $small => [640, 427], $medium => [1280, 853]] as $file => $size) {
             $disk->assertExists($file);
             $this->assertSame('image/webp', getimagesizefromstring($disk->get($file))['mime']);
             $this->assertSame($size, array_slice(getimagesizefromstring($disk->get($file)), 0, 2), $file);
@@ -166,5 +166,28 @@ class ImageOptimizationTest extends TestCase
         // Running it again changes nothing.
         $this->artisan('images:optimize')->assertSuccessful();
         $this->assertSame($new, $cottage->fresh()->cover_image);
+    }
+
+    public function test_command_adds_newer_copy_sizes_to_optimized_photos_in_place(): void
+    {
+        Storage::fake('uploads');
+        $disk = Storage::disk('uploads');
+        $optimizer = app(ImageOptimizer::class);
+
+        // A photo optimised before the 480px copy existed.
+        $path = $optimizer->storeContents(UploadedFile::fake()->image('a.jpg', 2000, 1500)->getContent(), 'cottages');
+        $tile = $optimizer->variantPaths($path)[0];
+        $disk->delete($tile);
+        $photo = $disk->get($path);
+        $cottage = Cottage::factory()->create(['cover_image' => $path]);
+
+        $this->artisan('images:optimize', ['--dry-run' => true])->assertSuccessful();
+        $disk->assertMissing($tile);
+
+        $this->artisan('images:optimize', ['--delete-originals' => true])->assertSuccessful();
+
+        $this->assertSame($path, $cottage->fresh()->cover_image);
+        $this->assertSame($photo, $disk->get($path), 'The photo itself is left untouched.');
+        $this->assertSame([480, 360], array_slice(getimagesizefromstring($disk->get($tile)), 0, 2));
     }
 }

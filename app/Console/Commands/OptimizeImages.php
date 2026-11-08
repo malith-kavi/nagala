@@ -14,8 +14,9 @@ use InvalidArgumentException;
 
 /**
  * Converts photos uploaded before uploads were optimised into compact WebP files with smaller
- * copies (see ImageOptimizer), and points the database at the new files. Safe to run again:
- * photos that are already optimised are skipped.
+ * copies (see ImageOptimizer), and points the database at the new files. Photos that are
+ * already compact WebP files keep their path and just get any smaller copies they lack (such as
+ * a copy size added to the site later). Safe to run again: finished photos are skipped.
  */
 class OptimizeImages extends Command
 {
@@ -28,6 +29,10 @@ class OptimizeImages extends Command
     /** @var array<string, string> original path => new path, so a photo used twice (a cottage photo in the gallery) is converted once */
     private array $converted = [];
 
+    private int $toConvert = 0;
+
+    private int $completed = 0;
+
     private int $missing = 0;
 
     private int $failed = 0;
@@ -36,7 +41,7 @@ class OptimizeImages extends Command
     {
         $dryRun = (bool) $this->option('dry-run');
         $this->converted = [];
-        $this->missing = $this->failed = 0;
+        $this->toConvert = $this->completed = $this->missing = $this->failed = 0;
 
         $convert = function (?string $path, int $maxSide = ImageOptimizer::MAX_SIDE) use ($optimizer, $dryRun): ?string {
             if (! $path || str_starts_with($path, 'http') || str_starts_with($path, '/')) {
@@ -57,15 +62,26 @@ class OptimizeImages extends Command
                 return $path;
             }
 
+            // Already a compact WebP that only lacks a newer smaller copy: it keeps its path.
+            $compact = $optimizer->isCompactFile($path, $maxSide);
+            $compact ? $this->completed++ : $this->toConvert++;
+
             if ($dryRun) {
-                $this->line("Would convert: {$path} (".round($disk->size($path) / 1024).' KB)');
+                $this->line(($compact ? 'Would add smaller copies: ' : 'Would convert: ').$path.' ('.round($disk->size($path) / 1024).' KB)');
 
                 return $this->converted[$path] = $path;
             }
 
             try {
+                if ($compact) {
+                    $optimizer->completeVariants($path);
+                    $this->line("Added smaller copies: {$path}");
+
+                    return $this->converted[$path] = $path;
+                }
                 $new = $optimizer->storeContents($disk->get($path), dirname($path), $maxSide);
             } catch (InvalidArgumentException $e) {
+                $compact ? $this->completed-- : $this->toConvert--;
                 $this->failed++;
                 $this->error("Could not convert {$path}: {$e->getMessage()}");
 
@@ -114,7 +130,8 @@ class OptimizeImages extends Command
             $this->info('Deleted '.count($changed).' original file(s).');
         }
 
-        $this->info(($dryRun ? 'Would convert ' : 'Converted ').count($this->converted).' photo(s).'
+        $this->info(($dryRun ? 'Would convert ' : 'Converted ')."{$this->toConvert} photo(s)"
+            .($this->completed ? ($dryRun ? ' and add' : ' and added')." smaller copies to {$this->completed} more" : '').'.'
             .($this->missing ? " {$this->missing} missing." : '')
             .($this->failed ? " {$this->failed} could not be read." : ''));
 
