@@ -15,8 +15,23 @@ import { useState } from 'react';
 
 // Each home section fills one screen below the 72px sticky navbar.
 const screenSection = 'flex min-h-[calc(100svh-72px)] flex-col justify-center';
+// The menu's Cottages, Nearby Places and Packages links scroll to these sections; this keeps
+// the section top clear of the sticky navbar.
+const menuSection = `scroll-mt-[72px] ${screenSection}`;
 
-export default function Home({ cottages, places, placesCount, packages }) {
+// The bundled hero photos are 1670px wide, but a phone shows only a narrow slice of the photo
+// stretched to fill a tall screen, so it looked soft. Each one has WebP copies: the same photo,
+// and a 2x one made with an AI upscaler. An uploaded hero has none and shows as uploaded.
+const HERO_WEBP = {
+    '/images/hero_l.jpg': '/images/hero_l.webp 1670w, /images/hero_l-2x.webp 3340w',
+    '/images/hero_d.jpg': '/images/hero_d.webp 1670w, /images/hero_d-2x.webp 3340w',
+};
+
+// How wide the hero photo is drawn: the full screen width, or on screens narrower than the photo,
+// its height (one screen minus the navbar) times the photo's 1670/942 aspect ratio.
+const HERO_SIZES = '(max-aspect-ratio: 1670/942) calc((100vh - 72px) * 1.773), 100vw';
+
+export default function Home({ cottages, places, placesCount, packages, packagesCount }) {
     const { settings } = usePage().props;
     const [video, setVideo] = useState(false);
 
@@ -27,6 +42,9 @@ export default function Home({ cottages, places, placesCount, packages }) {
                 <ImageWithFallback
                     src={settings.hero_image_url}
                     darkSrc={settings.hero_image_dark_url}
+                    webpSrcSet={HERO_WEBP[settings.hero_image_url]}
+                    darkWebpSrcSet={HERO_WEBP[settings.hero_image_dark_url]}
+                    sizes={HERO_SIZES}
                     alt="Eco cottages beneath Nagala rock"
                     className="absolute inset-0 -z-20 h-full w-full"
                     loading="eager"
@@ -66,7 +84,7 @@ export default function Home({ cottages, places, placesCount, packages }) {
 
 
             {/* Cottages */}
-            <section id="cottages" className={`relative overflow-hidden bg-gradient-to-b from-[#fbf9f2] to-[#f7f3e8] py-10 ${screenSection}`}>
+            <section id="cottages" className={`relative overflow-hidden bg-gradient-to-b from-[#fbf9f2] to-[#f7f3e8] py-10 ${menuSection}`}>
                 <CottageLeaves />
                 <div className="relative mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
                     <SectionHeading
@@ -96,13 +114,13 @@ export default function Home({ cottages, places, placesCount, packages }) {
             <div className="relative isolate bg-[#0a1e12]">
                 <div
                     aria-hidden
-                    className="sticky top-[72px] -z-10 mb-[calc(72px-100svh)] h-[calc(100svh-72px)] bg-[url('/images/design/nearby-bg.jpg')] bg-cover bg-center"
+                    className="sticky top-[72px] -z-10 mb-[calc(72px-100svh)] h-[calc(100svh-72px)] bg-[url('/images/design/nearby-bg.webp')] bg-cover bg-center"
                 >
                     <div className="absolute inset-0 bg-gradient-to-b from-[#0a1e12]/55 via-[#0a1e12]/35 to-[#0a1e12]/70" />
                 </div>
 
                 {/* Experience Nagala */}
-                <section className={`py-10 ${screenSection}`}>
+                <section id="places" className={`py-10 ${menuSection}`}>
                     <Reveal className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
                         <div className="reveal-item">
                             <SectionHeading
@@ -130,7 +148,7 @@ export default function Home({ cottages, places, placesCount, packages }) {
                 </section>
 
                 {/* Packages */}
-                <section className={`py-10 ${screenSection}`}>
+                <section id="packages" className={`py-10 ${menuSection}`}>
                     <Reveal className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-12">
                         <div className="reveal-item">
                             <SectionHeading
@@ -147,6 +165,13 @@ export default function Home({ cottages, places, placesCount, packages }) {
                                 </div>
                             ))}
                         </div>
+                        {packagesCount > packages.length && (
+                            <div className="reveal-item mt-8 text-center" style={revealDelay(150 + packages.length * 100)}>
+                                <Link href={route('packages.index')} className="btn-outline-light">
+                                    View all {packagesCount} packages <ArrowRight className="h-4 w-4" />
+                                </Link>
+                            </div>
+                        )}
                     </Reveal>
                 </section>
             </div>

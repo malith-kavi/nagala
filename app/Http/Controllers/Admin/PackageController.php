@@ -79,8 +79,8 @@ class PackageController extends Controller
             'cottage_id' => ['nullable', 'exists:cottages,id'],
             'is_active' => ['boolean'],
             'sort_order' => ['nullable', 'integer'],
-            'cover_image' => ['nullable', 'image', 'max:8192'],
-        ]);
+            'cover_image' => ['nullable', ...$this->imageRule()],
+        ], $this->imageMessages());
 
         $package->fill([
             ...collect($data)->except(['cover_image', 'slug', 'inclusions'])->all(),

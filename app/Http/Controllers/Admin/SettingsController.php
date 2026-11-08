@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Admin\Concerns\ManagesUploads;
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
+use App\Services\ImageOptimizer;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -35,22 +36,22 @@ class SettingsController extends Controller
             'video_url' => ['nullable', 'url', 'max:255'],
             'check_in_time' => ['nullable', 'string', 'max:20'],
             'check_out_time' => ['nullable', 'string', 'max:20'],
-            'hero_image' => ['nullable', 'image', 'max:10240'],
-            'hero_image_dark' => ['nullable', 'image', 'max:10240'],
-            'banner_image' => ['nullable', 'image', 'max:10240'],
-        ], ['whatsapp.regex' => 'Use digits only with country code, e.g. 94771234567.']);
+            'hero_image' => ['nullable', ...$this->imageRule()],
+            'hero_image_dark' => ['nullable', ...$this->imageRule()],
+            'banner_image' => ['nullable', ...$this->imageRule()],
+        ], ['whatsapp.regex' => 'Use digits only with country code, e.g. 94771234567.', ...$this->imageMessages()]);
 
         $current = Setting::allValues();
 
         foreach (Setting::IMAGE_KEYS as $key) {
             unset($data[$key]);
-            if ($request->boolean('remove_'.$key)) {
+            if ($file = $request->file($key)) {
+                // These fill the whole screen, so they keep more pixels than other photos.
+                $data[$key] = $this->storeImage($file, 'site', $key, ImageOptimizer::MAX_SIDE_LARGE);
+                $this->deleteStored($current[$key] ?: null);
+            } elseif ($request->boolean('remove_'.$key)) {
                 $this->deleteStored($current[$key] ?: null);
                 $data[$key] = '';
-            }
-            if ($file = $request->file($key)) {
-                $this->deleteStored($current[$key] ?: null);
-                $data[$key] = $file->store('site', 'uploads');
             }
         }
 

@@ -4,6 +4,7 @@ import PhotoGallery from '@/Components/Site/PhotoGallery';
 import Prose from '@/Components/Site/Prose';
 import SectionHeading from '@/Components/Site/SectionHeading';
 import SiteLayout from '@/Layouts/SiteLayout';
+import { cardSizes } from '@/lib/imageSrcSet';
 import { Link } from '@inertiajs/react';
 import { ArrowLeft, CalendarDays, Car, ExternalLink, MapPin } from 'lucide-react';
 
@@ -54,7 +55,7 @@ export default function PlaceShow({ place, others }) {
                         <SectionHeading light eyebrow="Keep Exploring" title="More Places Nearby" />
                         <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                             {others.map((p) => (
-                                <PlaceCard key={p.id} place={p} />
+                                <PlaceCard key={p.id} place={p} sizes={cardSizes(3)} />
                             ))}
                         </div>
                     </div>

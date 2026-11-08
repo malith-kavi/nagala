@@ -8,19 +8,92 @@ import { Head, Link, usePage } from '@inertiajs/react';
 import { CalendarDays, LucideProvider, MapPin, Menu, Phone, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
+// Cottages, Packages and Nearby Places are sections of the home page (`section` is the id).
+// `match` keeps the item highlighted on its own pages, such as a cottage's page.
 export const navItems = [
     { label: 'Home', route: 'home', match: 'home' },
-    { label: 'Cottages', route: 'cottages.index', match: 'cottages.*' },
-    { label: 'Packages', route: 'packages.index', match: 'packages.*' },
+    { label: 'Cottages', route: 'home', section: 'cottages', match: 'cottages.*' },
+    { label: 'Packages', route: 'home', section: 'packages', match: 'packages.*' },
     { label: 'Dining', route: 'dining', match: 'dining' },
-    { label: 'Nearby Places', route: 'places.index', match: 'places.*' },
+    { label: 'Nearby Places', route: 'home', section: 'places', match: 'places.*' },
     { label: 'Gallery', route: 'gallery', match: 'gallery' },
     { label: 'Contact', route: 'contact', match: 'contact' },
 ];
 
+const sections = navItems.filter((item) => item.section).map((item) => item.section);
+
+/**
+ * A menu link. On the home page, links to the home page or its sections just scroll there,
+ * with no page load; elsewhere they open the home page at that section.
+ */
+function NavLink({ item, onNavigate, ...props }) {
+    const href = route(item.route) + (item.section ? `#${item.section}` : '');
+
+    const scrollOnHome = (e) => {
+        onNavigate?.();
+        if (item.route !== 'home' || !route().current('home')) return;
+
+        const target = item.section ? document.getElementById(item.section) : null;
+        if (item.section && !target) return;
+
+        e.preventDefault();
+        window.history.replaceState(window.history.state, '', href);
+        // Once the mobile menu has closed, so the section is where it will stay.
+        setTimeout(() => (target ? target.scrollIntoView({ behavior: 'smooth' }) : window.scrollTo({ top: 0, behavior: 'smooth' })));
+    };
+
+    return <Link href={href} onClick={scrollOnHome} {...props} />;
+}
+
+/** On the home page, the menu section scrolled into view (null over the hero). */
+function useSectionInView(enabled) {
+    const [section, setSection] = useState(null);
+
+    useEffect(() => {
+        if (!enabled) return undefined;
+
+        let frame = 0;
+        const update = () => {
+            frame = 0;
+            // The section whose top has passed the upper third of the screen most recently.
+            const line = window.innerHeight / 3;
+            let current = null;
+            let currentTop = -Infinity;
+            for (const id of sections) {
+                const top = document.getElementById(id)?.getBoundingClientRect().top;
+                if (top !== undefined && top <= line && top > currentTop) {
+                    current = id;
+                    currentTop = top;
+                }
+            }
+            setSection(current);
+        };
+        const onScroll = () => {
+            frame ||= requestAnimationFrame(update);
+        };
+
+        update();
+        window.addEventListener('scroll', onScroll, { passive: true });
+        window.addEventListener('resize', onScroll);
+        return () => {
+            cancelAnimationFrame(frame);
+            window.removeEventListener('scroll', onScroll);
+            window.removeEventListener('resize', onScroll);
+        };
+    }, [enabled]);
+
+    return enabled ? section : null;
+}
+
 function Navbar() {
     const [open, setOpen] = useState(false);
     const { url } = usePage();
+    const onHome = route().current('home');
+    const section = useSectionInView(onHome);
+    const isActive = (item) => {
+        if (!onHome) return route().current(item.match);
+        return item.section ? item.section === section : item.route === 'home' && !section;
+    };
 
     useEffect(() => setOpen(false), [url]);
 
@@ -33,18 +106,18 @@ function Navbar() {
 
                 <ul className="hidden items-center gap-8 lg:flex">
                     {navItems.map((item) => {
-                        const active = route().current(item.match);
+                        const active = isActive(item);
                         return (
-                            <li key={item.route}>
-                                <Link
-                                    href={route(item.route)}
+                            <li key={item.label}>
+                                <NavLink
+                                    item={item}
                                     className={`relative py-2 text-sm font-medium transition hover:text-forest-700 ${
                                         active ? 'text-forest-800' : 'text-stone-700'
                                     }`}
                                 >
                                     {item.label}
                                     {active && <span className="absolute inset-x-0 -bottom-0.5 h-0.5 rounded bg-leaf-500" />}
-                                </Link>
+                                </NavLink>
                             </li>
                         );
                     })}
@@ -70,15 +143,16 @@ function Navbar() {
                 <div className="border-t border-stone-100 bg-white lg:hidden">
                     <ul className="space-y-1 px-4 py-3">
                         {navItems.map((item) => (
-                            <li key={item.route}>
-                                <Link
-                                    href={route(item.route)}
+                            <li key={item.label}>
+                                <NavLink
+                                    item={item}
+                                    onNavigate={() => setOpen(false)}
                                     className={`block rounded-md px-3 py-2.5 text-base font-medium ${
-                                        route().current(item.match) ? 'bg-forest-50 text-forest-800' : 'text-stone-700 hover:bg-stone-50'
+                                        isActive(item) ? 'bg-forest-50 text-forest-800' : 'text-stone-700 hover:bg-stone-50'
                                     }`}
                                 >
                                     {item.label}
-                                </Link>
+                                </NavLink>
                             </li>
                         ))}
                         <li className="pt-2">
@@ -113,10 +187,10 @@ function Footer() {
                 <div className="flex flex-col items-center gap-5">
                     <ul className="flex flex-wrap justify-center gap-x-7 gap-y-2 text-sm">
                         {navItems.map((item) => (
-                            <li key={item.route}>
-                                <Link href={route(item.route)} className="hover:text-gold-400">
+                            <li key={item.label}>
+                                <NavLink item={item} className="hover:text-gold-400">
                                     {item.label}
-                                </Link>
+                                </NavLink>
                             </li>
                         ))}
                     </ul>

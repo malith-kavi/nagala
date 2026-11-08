@@ -2,8 +2,8 @@ import { IMAGE_ACCEPT, prepareImage } from '@/lib/prepareImage';
 import { ImagePlus, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-/** Single-image upload with preview and remove option. */
-export default function ImageInput({ label, currentUrl, file, onFile, removed, onRemove, error, aspect = 'aspect-[4/3]' }) {
+/** Single-image upload with preview and remove option. `maxSide` is passed to prepareImage. */
+export default function ImageInput({ label, currentUrl, file, onFile, removed, onRemove, error, aspect = 'aspect-[4/3]', maxSide }) {
     const [preview, setPreview] = useState(null);
     const [preparing, setPreparing] = useState(false);
 
@@ -39,7 +39,7 @@ export default function ImageInput({ label, currentUrl, file, onFile, removed, o
                         const picked = e.target.files[0];
                         if (!picked) return onFile(null);
                         setPreparing(true);
-                        onFile(await prepareImage(picked));
+                        onFile(await prepareImage(picked, { maxSide }));
                         setPreparing(false);
                     }}
                     aria-label={label || 'Upload image'}

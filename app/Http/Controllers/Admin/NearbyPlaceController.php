@@ -69,10 +69,10 @@ class NearbyPlaceController extends Controller
             'map_url' => ['nullable', 'url', 'max:1000'],
             'is_active' => ['boolean'],
             'sort_order' => ['nullable', 'integer'],
-            'cover_image' => ['nullable', 'image', 'max:8192'],
+            'cover_image' => ['nullable', ...$this->imageRule()],
             'cover_credit' => ['nullable', 'string', 'max:255'],
             ...$this->imageListRules(),
-        ]);
+        ], $this->imageMessages());
 
         $place->fill([
             ...collect($data)->except(['cover_image', 'new_images', 'remove_images', 'image_order', 'slug'])->all(),

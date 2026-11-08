@@ -1,6 +1,7 @@
 import { Amenity, featureIcon, isMeal, Pax } from '@/Components/Site/Amenity';
 import ImageWithFallback from '@/Components/Site/ImageWithFallback';
 import { formatLKR } from '@/lib/format';
+import { cardSizes } from '@/lib/imageSrcSet';
 import { Link } from '@inertiajs/react';
 import { ArrowRight, BedDouble, Car, MapPin } from 'lucide-react';
 
@@ -22,7 +23,7 @@ function CardFooter({ href, price, unit, from = false, cta }) {
     );
 }
 
-export function CottageCard({ cottage, className = '' }) {
+export function CottageCard({ cottage, className = '', sizes = cardSizes(4) }) {
     const href = route('cottages.show', cottage.slug);
 
     return (
@@ -32,6 +33,7 @@ export function CottageCard({ cottage, className = '' }) {
                     src={cottage.cover_image_url}
                     alt={cottage.name}
                     label={cottage.name}
+                    sizes={sizes}
                     className="aspect-[4/3] w-full transition duration-500 hover:scale-105"
                 />
             </Link>
@@ -54,7 +56,7 @@ export function CottageCard({ cottage, className = '' }) {
     );
 }
 
-export function PlaceCard({ place, className = '' }) {
+export function PlaceCard({ place, className = '', sizes = cardSizes(4) }) {
     const href = route('places.show', place.slug);
 
     return (
@@ -64,6 +66,7 @@ export function PlaceCard({ place, className = '' }) {
                     src={place.cover_image_url}
                     alt={place.name}
                     label={place.name}
+                    sizes={sizes}
                     className="aspect-[4/3] w-full transition duration-500 hover:scale-105"
                 />
             </Link>
@@ -93,7 +96,7 @@ export function PlaceCard({ place, className = '' }) {
 /** Package prices cover the package's nights, so "/ night" for the usual 1-night packages. */
 export const packageUnit = (pkg) => (pkg.nights > 1 ? `/ ${pkg.nights} nights` : '/ night');
 
-export function PackageCard({ pkg, className = '' }) {
+export function PackageCard({ pkg, className = '', sizes = cardSizes(3) }) {
     const href = route('packages.show', pkg.slug);
     // The card is already a stay, so the cottage itself isn't listed; meals share one row like a bed/guests line.
     const inclusions = (pkg.inclusion_list ?? []).filter((i) => i.key !== 'cottage');
@@ -107,6 +110,7 @@ export function PackageCard({ pkg, className = '' }) {
                     src={pkg.cover_image_url}
                     alt={pkg.name}
                     label={pkg.name}
+                    sizes={sizes}
                     className="aspect-[16/9] w-full transition duration-500 hover:scale-105"
                 />
             </Link>

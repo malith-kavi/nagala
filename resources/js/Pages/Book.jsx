@@ -156,7 +156,7 @@ export default function Book({ cottages, packages, preselect }) {
                                                 Number(data.cottage_id) === c.id ? 'ring-leaf-500' : 'ring-stone-200 hover:ring-forest-300'
                                             }`}
                                         >
-                                            <ImageWithFallback src={c.cover_image_url} alt="" className="aspect-[16/9] w-full" />
+                                            <ImageWithFallback src={c.cover_image_url} alt="" sizes="(min-width: 640px) 400px, 100vw" className="aspect-[16/9] w-full" />
                                             <span className="block p-3">
                                                 <span className="block text-sm font-semibold text-stone-900">{c.name}</span>
                                                 <span className="mt-0.5 flex items-center justify-between gap-2 text-xs text-stone-600">

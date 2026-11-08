@@ -2,6 +2,7 @@ import FormActions from '@/Components/Admin/FormActions';
 import ImageInput from '@/Components/Admin/ImageInput';
 import Field from '@/Components/Site/Field';
 import AdminLayout from '@/Layouts/AdminLayout';
+import { MAX_SIDE_LARGE } from '@/lib/prepareImage';
 import { useForm } from '@inertiajs/react';
 
 const text = [
@@ -40,6 +41,7 @@ export default function Settings({ settings }) {
         <ImageInput
             label={label}
             aspect="aspect-[16/7]"
+            maxSide={MAX_SIDE_LARGE}
             currentUrl={settings[`${key}_url`]}
             file={data[key]}
             onFile={(f) => setData((d) => ({ ...d, [key]: f, [`remove_${key}`]: f ? false : d[`remove_${key}`] }))}

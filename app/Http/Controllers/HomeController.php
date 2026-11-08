@@ -17,6 +17,7 @@ class HomeController extends Controller
             'places' => NearbyPlace::active()->take(4)->get(),
             'placesCount' => NearbyPlace::active()->count(),
             'packages' => Package::active()->take(3)->get(),
+            'packagesCount' => Package::active()->count(),
         ]);
     }
 }

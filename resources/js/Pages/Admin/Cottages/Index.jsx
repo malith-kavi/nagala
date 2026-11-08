@@ -18,7 +18,7 @@ export default function CottagesIndex({ cottages }) {
             <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
                 {cottages.map((c) => (
                     <div key={c.id} className="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-stone-200">
-                        <ImageWithFallback src={c.cover_image_url} alt="" label="No photo yet" className="aspect-[16/9] w-full" />
+                        <ImageWithFallback src={c.cover_image_url} alt="" label="No photo yet" sizes="(min-width: 1280px) 33vw, (min-width: 640px) 50vw, 100vw" className="aspect-[16/9] w-full" />
                         <div className="p-4">
                             <div className="flex items-start justify-between gap-2">
                                 <h2 className="font-semibold text-stone-900">{c.name}</h2>

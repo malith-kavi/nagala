@@ -22,6 +22,8 @@ export default function PhotoGallery({ photos, name, className = '' }) {
                         src={photos[0]?.url}
                         alt={name}
                         label={name}
+                        loading="eager"
+                        sizes={thumbs.length ? '(min-width: 1152px) 640px, (min-width: 640px) 55vw, 100vw' : '(min-width: 1152px) 1152px, 100vw'}
                         className={`aspect-[16/10] h-full w-full ${thumbs.length ? 'sm:aspect-auto' : ''}`}
                     />
                 </button>
@@ -37,7 +39,7 @@ export default function PhotoGallery({ photos, name, className = '' }) {
                             const more = i === thumbs.length - 1 ? photos.length - 1 - thumbs.length : 0;
                             return (
                                 <button key={p.url} type="button" onClick={() => setLightbox(i + 1)} className="relative overflow-hidden rounded-lg">
-                                    <img src={p.url} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover transition hover:scale-105" />
+                                    <ImageWithFallback src={p.url} sizes="240px" className="absolute inset-0 h-full w-full transition hover:scale-105" />
                                     {more > 0 && (
                                         <span className="absolute inset-0 flex items-center justify-center bg-forest-950/55 text-sm font-semibold text-white">
                                             +{more}
@@ -55,7 +57,7 @@ export default function PhotoGallery({ photos, name, className = '' }) {
                 <div className="scrollbar-none -mx-4 mt-3 flex snap-x gap-2 overflow-x-auto px-4 sm:hidden">
                     {photos.slice(1).map((p, i) => (
                         <button key={p.url} type="button" onClick={() => setLightbox(i + 1)} className="shrink-0 snap-start overflow-hidden rounded-lg">
-                            <img src={p.url} alt="" loading="lazy" className="h-20 w-28 object-cover" />
+                            <ImageWithFallback src={p.url} sizes="112px" className="h-20 w-28" />
                         </button>
                     ))}
                 </div>

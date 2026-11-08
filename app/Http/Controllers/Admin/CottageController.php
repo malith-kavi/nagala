@@ -83,9 +83,9 @@ class CottageController extends Controller
             'units' => ['required', 'integer', 'min:1', 'max:50'],
             'is_active' => ['boolean'],
             'sort_order' => ['nullable', 'integer'],
-            'cover_image' => ['nullable', 'image', 'max:8192'],
+            'cover_image' => ['nullable', ...$this->imageRule()],
             ...$this->imageListRules(),
-        ]);
+        ], $this->imageMessages());
 
         $cottage->fill([
             ...collect($data)->except(['cover_image', 'new_images', 'remove_images', 'image_order', 'slug', 'features'])->all(),

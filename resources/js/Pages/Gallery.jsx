@@ -1,3 +1,4 @@
+import ImageWithFallback from '@/Components/Site/ImageWithFallback';
 import Lightbox from '@/Components/Site/Lightbox';
 import PageHeader from '@/Components/Site/PageHeader';
 import SiteLayout from '@/Layouts/SiteLayout';
@@ -43,7 +44,12 @@ export default function Gallery({ images, categories }) {
                                 onClick={() => setLightbox(i)}
                                 className="group relative mb-3 block w-full overflow-hidden rounded-xl break-inside-avoid sm:mb-4"
                             >
-                                <img src={img.url} alt={img.caption || ''} loading="lazy" className="w-full transition duration-500 group-hover:scale-105" />
+                                <ImageWithFallback
+                                    src={img.url}
+                                    alt={img.caption || ''}
+                                    sizes="(min-width: 1024px) 25vw, (min-width: 768px) 33vw, 50vw"
+                                    className="w-full transition duration-500 group-hover:scale-105"
+                                />
                                 {img.caption && (
                                     <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-3 text-left text-sm text-white opacity-0 transition group-hover:opacity-100">
                                         {img.caption}

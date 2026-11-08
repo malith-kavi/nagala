@@ -5,6 +5,7 @@ import Prose from '@/Components/Site/Prose';
 import SectionHeading from '@/Components/Site/SectionHeading';
 import SiteLayout from '@/Layouts/SiteLayout';
 import { formatLKR } from '@/lib/format';
+import { cardSizes } from '@/lib/imageSrcSet';
 import { Link, usePage } from '@inertiajs/react';
 import { ArrowLeft, Banknote, BedDouble, CalendarDays, Check, Clock, GlassWater, Zap } from 'lucide-react';
 
@@ -90,7 +91,7 @@ export default function CottageShow({ cottage, others }) {
                         <SectionHeading eyebrow="More Options" title="Other Cottages" />
                         <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                             {others.map((c) => (
-                                <CottageCard key={c.id} cottage={c} />
+                                <CottageCard key={c.id} cottage={c} sizes={cardSizes(3)} />
                             ))}
                         </div>
                     </div>

@@ -27,14 +27,14 @@ class GalleryImageController extends Controller
     {
         $data = $request->validate([
             'images' => ['required', 'array', 'max:30'],
-            'images.*' => ['image', 'max:8192'],
+            'images.*' => $this->imageRule(),
             'category' => ['required', Rule::in(GalleryImage::CATEGORIES)],
             'caption' => ['nullable', 'string', 'max:190'],
-        ]);
+        ], $this->imageMessages());
 
         foreach ($request->file('images') as $file) {
             GalleryImage::create([
-                'path' => $file->store('gallery', 'uploads'),
+                'path' => $this->storeImage($file, 'gallery', 'images'),
                 'category' => $data['category'],
                 'caption' => $data['caption'] ?? null,
             ]);

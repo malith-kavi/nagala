@@ -1,5 +1,6 @@
 import DeleteButton from '@/Components/Admin/DeleteButton';
 import Field from '@/Components/Site/Field';
+import ImageWithFallback from '@/Components/Site/ImageWithFallback';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { IMAGE_ACCEPT, prepareImages } from '@/lib/prepareImage';
 import { Link, router, useForm } from '@inertiajs/react';
@@ -13,7 +14,12 @@ function ImageRow({ image, categories }) {
     return (
         <div className="overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-stone-200">
             <div className="relative">
-                <img src={image.url} alt={image.caption || ''} className="aspect-[4/3] w-full object-cover" />
+                <ImageWithFallback
+                    src={image.url}
+                    alt={image.caption || ''}
+                    sizes="(min-width: 1280px) 25vw, (min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+                    className="aspect-[4/3] w-full"
+                />
                 {image.cottage && (
                     <Link
                         href={route('admin.cottages.edit', image.cottage.id)}
