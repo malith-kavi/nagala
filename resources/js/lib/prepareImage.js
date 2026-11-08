@@ -2,6 +2,8 @@
 // browsers can't show and the server rejects). So photos are resized and re-encoded here before
 // uploading, which also keeps uploads quick on a weak signal: WebP where the browser can make it
 // (JPEG otherwise), at the highest quality that fits. The server then makes the smaller copies.
+import { useSyncExternalStore } from 'react';
+
 export const MAX_BYTES = 1024 * 1024;
 export const MAX_SIDE = 2048;
 /** Full-screen images such as the home hero keep more pixels, so they stay sharp on phones. */
@@ -15,6 +17,22 @@ const isConvertible = (file) => /^image\//i.test(file.type) && !/svg/i.test(file
 const isAccepted = (file) => /^image\/(jpeg|png|webp)$/i.test(file.type);
 
 const toBlob = (canvas, type, quality) => new Promise((resolve) => canvas.toBlob(resolve, type, quality));
+
+// How many photo batches are being prepared right now. A photo still being prepared isn't in its
+// form yet, so FormActions holds off saving until it's ready instead of leaving it out.
+let pending = 0;
+const listeners = new Set();
+const setPending = (change) => {
+    pending += change;
+    listeners.forEach((listener) => listener());
+};
+const subscribe = (listener) => {
+    listeners.add(listener);
+    return () => listeners.delete(listener);
+};
+
+/** Whether any photo is still being prepared for upload. */
+export const usePreparingImages = () => useSyncExternalStore(subscribe, () => pending > 0, () => false);
 
 // Older Safari can't encode WebP; asked for it, the canvas returns a PNG instead.
 let webp;
@@ -49,9 +67,14 @@ async function encodeUnderLimit(bitmap, maxSide, type) {
 
     for (let attempt = 0; attempt < 8; attempt++) {
         const canvas = draw(bitmap, scale, type);
-        for (const quality of QUALITIES) {
-            blob = await toBlob(canvas, type, quality);
-            if (blob && blob.size <= MAX_BYTES) return blob;
+        try {
+            for (const quality of QUALITIES) {
+                blob = await toBlob(canvas, type, quality);
+                if (blob && blob.size <= MAX_BYTES) return blob;
+            }
+        } finally {
+            // Safari holds on to a canvas's memory until it's garbage collected; emptying it frees that now.
+            canvas.width = canvas.height = 0;
         }
         scale *= 0.85;
     }
@@ -64,7 +87,7 @@ async function encodeUnderLimit(bitmap, maxSide, type) {
  * within both limits are left as they are. If the browser can't read the photo, it's returned
  * unchanged and the server reports the problem.
  */
-export async function prepareImage(file, { maxSide = MAX_SIDE } = {}) {
+async function prepare(file, { maxSide = MAX_SIDE } = {}) {
     const heic = isHeic(file);
     if (!heic && !isConvertible(file)) return file;
 
@@ -92,6 +115,26 @@ export async function prepareImage(file, { maxSide = MAX_SIDE } = {}) {
     }
 }
 
-export const prepareImages = (files, options) => Promise.all([...files].map((file) => prepareImage(file, options)));
+async function tracked(work) {
+    setPending(1);
+    try {
+        return await work();
+    } finally {
+        setPending(-1);
+    }
+}
+
+export const prepareImage = (file, options) => tracked(() => prepare(file, options));
+
+/**
+ * Photos are prepared one at a time: a phone photo takes about 50 MB of memory while it's resized,
+ * so preparing a dozen at once could freeze the page or make a phone reload it.
+ */
+export const prepareImages = (files, options) =>
+    tracked(async () => {
+        const prepared = [];
+        for (const file of files) prepared.push(await prepare(file, options));
+        return prepared;
+    });
 
 export const IMAGE_ACCEPT = 'image/*,.heic,.heif';

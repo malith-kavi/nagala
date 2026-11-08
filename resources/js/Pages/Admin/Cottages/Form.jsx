@@ -9,7 +9,7 @@ import { useForm } from '@inertiajs/react';
 export default function CottageForm({ cottage, featureOptions }) {
     const editing = Boolean(cottage);
     const olderFeatures = (cottage?.features ?? []).filter((f) => !(f in featureOptions));
-    const { data, setData, post, processing, errors, transform } = useForm({
+    const { data, setData, post, processing, progress, errors, transform } = useForm({
         _method: editing ? 'put' : 'post',
         name: cottage?.name ?? '',
         slug: cottage?.slug ?? '',
@@ -107,12 +107,12 @@ export default function CottageForm({ cottage, featureOptions }) {
                             label="More photos"
                             photos={data.photos}
                             setPhotos={setPhotos}
-                            error={Object.keys(errors).some((k) => k.startsWith('new_images')) && 'One of the photos is invalid (images up to 8 MB).'}
+                            error={Object.entries(errors).find(([k]) => k.startsWith('new_images'))?.[1]}
                         />
                     </div>
                 </div>
 
-                <FormActions processing={processing} cancelHref={route('admin.cottages.index')} label={editing ? 'Save changes' : 'Create cottage'} />
+                <FormActions processing={processing} progress={progress} cancelHref={route('admin.cottages.index')} label={editing ? 'Save changes' : 'Create cottage'} />
             </form>
         </AdminLayout>
     );

@@ -21,7 +21,7 @@ const text = [
 ];
 
 export default function Settings({ settings }) {
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, post, processing, progress, errors } = useForm({
         ...Object.fromEntries(text.map(([k]) => [k, settings[k] ?? ''])),
         map_embed_url: settings.map_embed_url ?? '',
         hero_image: null,
@@ -83,7 +83,7 @@ export default function Settings({ settings }) {
                     </div>
                 </section>
 
-                <FormActions processing={processing} label="Save settings" />
+                <FormActions processing={processing} progress={progress} label="Save settings" />
             </form>
         </AdminLayout>
     );

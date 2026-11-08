@@ -8,7 +8,7 @@ import { useForm } from '@inertiajs/react';
 export default function PackageForm({ package: pkg, cottages, inclusionOptions }) {
     const editing = Boolean(pkg);
     const olderInclusions = (pkg?.inclusions ?? []).filter((i) => !(i in inclusionOptions));
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, post, processing, progress, errors } = useForm({
         _method: editing ? 'put' : 'post',
         name: pkg?.name ?? '',
         slug: pkg?.slug ?? '',
@@ -94,7 +94,7 @@ export default function PackageForm({ package: pkg, cottages, inclusionOptions }
                         error={errors.cover_image}
                     />
                 </div>
-                <FormActions processing={processing} cancelHref={route('admin.packages.index')} label={editing ? 'Save changes' : 'Create package'} />
+                <FormActions processing={processing} progress={progress} cancelHref={route('admin.packages.index')} label={editing ? 'Save changes' : 'Create package'} />
             </form>
         </AdminLayout>
     );

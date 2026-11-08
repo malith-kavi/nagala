@@ -7,7 +7,7 @@ import { useForm } from '@inertiajs/react';
 
 export default function PlaceForm({ place }) {
     const editing = Boolean(place);
-    const { data, setData, post, processing, errors, transform } = useForm({
+    const { data, setData, post, processing, progress, errors, transform } = useForm({
         _method: editing ? 'put' : 'post',
         name: place?.name ?? '',
         slug: place?.slug ?? '',
@@ -98,11 +98,11 @@ export default function PlaceForm({ place }) {
                             label="More photos"
                             photos={data.photos}
                             setPhotos={setPhotos}
-                            error={Object.keys(errors).some((k) => k.startsWith('new_images')) && 'One of the photos is invalid (images up to 8 MB).'}
+                            error={Object.entries(errors).find(([k]) => k.startsWith('new_images'))?.[1]}
                         />
                     </div>
                 </div>
-                <FormActions processing={processing} cancelHref={route('admin.places.index')} label={editing ? 'Save changes' : 'Create place'} />
+                <FormActions processing={processing} progress={progress} cancelHref={route('admin.places.index')} label={editing ? 'Save changes' : 'Create place'} />
             </form>
         </AdminLayout>
     );
