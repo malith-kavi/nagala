@@ -2,6 +2,7 @@ import { PackageCard } from '@/Components/Site/Cards';
 import PageHeader from '@/Components/Site/PageHeader';
 import PrefetchLink from '@/Components/Site/PrefetchLink';
 import SiteLayout from '@/Layouts/SiteLayout';
+import { cardSizes } from '@/lib/imageSrcSet';
 import { Utensils } from 'lucide-react';
 
 export default function PackagesIndex({ packages }) {
@@ -15,7 +16,7 @@ export default function PackagesIndex({ packages }) {
             <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8">
                 <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
                     {packages.map((p) => (
-                        <PackageCard key={p.id} pkg={p} />
+                        <PackageCard key={p.id} pkg={p} sizes={cardSizes(3, { container: 1152, gap: 32 })} />
                     ))}
                 </div>
                 {packages.length === 0 && <p className="text-center text-stone-500">New packages are coming soon.</p>}

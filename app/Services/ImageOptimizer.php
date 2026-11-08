@@ -13,14 +13,18 @@ use RuntimeException;
  * Stores photos as compact WebP files that load quickly on a weak mobile signal: the photo itself,
  * never over 1 MB, plus smaller copies beside it for cards and thumbnails:
  *
- *     cottages/<name>.webp        up to 2048px on its long side, for the full-screen view
- *     cottages/<name>-1280.webp   main photos, and cards on phones
+ *     cottages/<name>.webp        up to 2048px on its long side, for the full-screen view on big screens
+ *     cottages/<name>-1280.webp   main photos on big screens
+ *     cottages/<name>-960.webp    main photos and cards on phones (about 60% of the 1280px copy's size)
  *     cottages/<name>-640.webp    cards on desktop
- *     cottages/<name>-480.webp    gallery tiles and thumbnails
+ *     cottages/<name>-480.webp    gallery tiles
+ *     cottages/<name>-320.webp    the small tiles beside a cottage's main photo (about half the 480px copy)
  *
  * Each copy is the smallest that looks the same as the original where it's shown
  * (measured on the site's own photos: smaller or lower quality visibly softens thatch and leaves).
- * The frontend's srcSetFor() (resources/js/lib/imageSrcSet.js) relies on this naming.
+ * The frontend's srcSetFor() (resources/js/lib/imageSrcSet.js) relies on this naming. A copy size
+ * added later is made for older photos by `php artisan images:optimize`, or on its first request
+ * (PhotoCopyController).
  * Where the server's GD can't write WebP, the same files are written as JPEG instead.
  */
 class ImageOptimizer
@@ -33,7 +37,7 @@ class ImageOptimizer
     public const MAX_SIDE_LARGE = 3200;
 
     /** Widths of the smaller copies, with the quality each is saved at. */
-    public const VARIANTS = [480 => 75, 640 => 75, 1280 => 78];
+    public const VARIANTS = [320 => 75, 480 => 75, 640 => 75, 960 => 78, 1280 => 78];
 
     /** Qualities tried in turn for the photo itself until it fits in MAX_BYTES. */
     private const QUALITIES = [82, 76, 70, 64];
@@ -104,11 +108,26 @@ class ImageOptimizer
         return str_contains($path, '.') ? array_map(fn ($width) => $this->variantPath($path, $width), array_keys(self::VARIANTS)) : [];
     }
 
-    private function variantPath(string $path, int $width): string
+    /** The path of a photo's copy $width pixels wide (photo.webp → photo-480.webp). */
+    public function variantPath(string $path, int $width): string
     {
         $dot = strrpos($path, '.');
 
         return substr($path, 0, $dot)."-{$width}".substr($path, $dot);
+    }
+
+    /**
+     * The stored photo a copy's path belongs to (photo-480.webp → photo.webp), or null when the path
+     * isn't a copy of a size this site makes. Stored photos have 40 random characters for a name.
+     */
+    public function photoOf(string $copy): ?string
+    {
+        if (! preg_match('#^((?:[A-Za-z0-9_-]+/)*[A-Za-z0-9]{40})-(\d+)\.'.$this->extension().'$#', $copy, $match)
+            || ! isset(self::VARIANTS[(int) $match[2]])) {
+            return null;
+        }
+
+        return $match[1].'.'.$this->extension();
     }
 
     private function writeVariants(GdImage $image, string $path, bool $onlyMissing = false): void

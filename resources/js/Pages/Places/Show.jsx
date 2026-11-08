@@ -5,6 +5,7 @@ import PrefetchLink from '@/Components/Site/PrefetchLink';
 import Prose from '@/Components/Site/Prose';
 import SectionHeading from '@/Components/Site/SectionHeading';
 import SiteLayout from '@/Layouts/SiteLayout';
+import { gallerySizes } from '@/lib/bundledImages.json';
 import { cardSizes } from '@/lib/imageSrcSet';
 import { ArrowLeft, CalendarDays, Car, ExternalLink, MapPin } from 'lucide-react';
 
@@ -17,7 +18,7 @@ export default function PlaceShow({ place, others }) {
                 <PrefetchLink href={route('places.index')} className="inline-flex items-center gap-1 text-sm text-forest-700 hover:underline">
                     <ArrowLeft className="h-4 w-4" /> All nearby places
                 </PrefetchLink>
-                <PhotoGallery photos={photos} name={place.name} className="mt-4" />
+                <PhotoGallery photos={photos} name={place.name} sizes={gallerySizes.place} className="mt-4" />
                 {place.cover_image_url && place.cover_credit && <p className="mt-2 text-right text-xs text-stone-500">{place.cover_credit}</p>}
 
                 <p className="eyebrow mt-8">Explore Around</p>
@@ -55,7 +56,7 @@ export default function PlaceShow({ place, others }) {
                         <SectionHeading light eyebrow="Keep Exploring" title="More Places Nearby" />
                         <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                             {others.map((p) => (
-                                <PlaceCard key={p.id} place={p} sizes={cardSizes(3)} />
+                                <PlaceCard key={p.id} place={p} sizes={cardSizes(3, { container: 1152 })} />
                             ))}
                         </div>
                     </div>

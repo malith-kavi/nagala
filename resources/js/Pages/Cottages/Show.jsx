@@ -5,6 +5,7 @@ import PrefetchLink from '@/Components/Site/PrefetchLink';
 import Prose from '@/Components/Site/Prose';
 import SectionHeading from '@/Components/Site/SectionHeading';
 import SiteLayout from '@/Layouts/SiteLayout';
+import { gallerySizes } from '@/lib/bundledImages.json';
 import { formatLKR } from '@/lib/format';
 import { cardSizes } from '@/lib/imageSrcSet';
 import { usePage } from '@inertiajs/react';
@@ -21,7 +22,7 @@ export default function CottageShow({ cottage, others }) {
                     <ArrowLeft className="h-4 w-4" /> All cottages
                 </PrefetchLink>
 
-                <PhotoGallery photos={photos} name={cottage.name} className="mt-4" />
+                <PhotoGallery photos={photos} name={cottage.name} sizes={gallerySizes.cottage} className="mt-4" />
 
                 <div className="mt-10 grid gap-10 lg:grid-cols-[1fr_340px]">
                     <div>
@@ -92,7 +93,7 @@ export default function CottageShow({ cottage, others }) {
                         <SectionHeading eyebrow="More Options" title="Other Cottages" />
                         <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                             {others.map((c) => (
-                                <CottageCard key={c.id} cottage={c} sizes={cardSizes(3)} />
+                                <CottageCard key={c.id} cottage={c} sizes={cardSizes(3, { container: 1152 })} />
                             ))}
                         </div>
                     </div>

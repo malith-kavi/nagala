@@ -52,8 +52,13 @@ class ImageOptimizationTest extends TestCase
         $this->assertStringEndsWith('.webp', $path);
 
         $disk = Storage::disk('uploads');
-        [$full, $tile, $small, $medium] = $this->files($path);
-        foreach ([$full => [2048, 1365], $tile => [480, 320], $small => [640, 427], $medium => [1280, 853]] as $file => $size) {
+        $optimizer = app(ImageOptimizer::class);
+        $expected = [$path => [2048, 1365]];
+        foreach ([320 => 213, 480 => 320, 640 => 427, 960 => 640, 1280 => 853] as $width => $height) {
+            $expected[$optimizer->variantPath($path, $width)] = [$width, $height];
+        }
+        $this->assertEqualsCanonicalizing(array_keys($expected), $this->files($path));
+        foreach ($expected as $file => $size) {
             $disk->assertExists($file);
             $this->assertSame('image/webp', getimagesizefromstring($disk->get($file))['mime']);
             $this->assertSame($size, array_slice(getimagesizefromstring($disk->get($file)), 0, 2), $file);
@@ -174,10 +179,11 @@ class ImageOptimizationTest extends TestCase
         $disk = Storage::disk('uploads');
         $optimizer = app(ImageOptimizer::class);
 
-        // A photo optimised before the 480px copy existed.
+        // A photo optimised before the 320px and 960px copies existed.
         $path = $optimizer->storeContents(UploadedFile::fake()->image('a.jpg', 2000, 1500)->getContent(), 'cottages');
-        $tile = $optimizer->variantPaths($path)[0];
-        $disk->delete($tile);
+        $tile = $optimizer->variantPath($path, 320);
+        $phone = $optimizer->variantPath($path, 960);
+        $disk->delete([$tile, $phone]);
         $photo = $disk->get($path);
         $cottage = Cottage::factory()->create(['cover_image' => $path]);
 
@@ -188,6 +194,39 @@ class ImageOptimizationTest extends TestCase
 
         $this->assertSame($path, $cottage->fresh()->cover_image);
         $this->assertSame($photo, $disk->get($path), 'The photo itself is left untouched.');
-        $this->assertSame([480, 360], array_slice(getimagesizefromstring($disk->get($tile)), 0, 2));
+        $this->assertSame([320, 240], array_slice(getimagesizefromstring($disk->get($tile)), 0, 2));
+        $this->assertSame([960, 720], array_slice(getimagesizefromstring($disk->get($phone)), 0, 2));
+    }
+
+    public function test_a_missing_copy_is_made_on_its_first_request(): void
+    {
+        Storage::fake('uploads');
+        $disk = Storage::disk('uploads');
+        $optimizer = app(ImageOptimizer::class);
+
+        // A photo uploaded before the 320px copy existed, as on the live site until images:optimize runs.
+        $path = $optimizer->storeContents(UploadedFile::fake()->image('a.jpg', 2000, 1500)->getContent(), 'cottages');
+        $tile = $optimizer->variantPath($path, 320);
+        $disk->delete($tile);
+
+        $this->get('/uploads/'.$tile)
+            ->assertOk()
+            ->assertHeader('Content-Type', 'image/webp')
+            ->assertHeader('Cache-Control', 'immutable, max-age=31536000, public');
+        $this->assertSame([320, 240], array_slice(getimagesizefromstring($disk->get($tile)), 0, 2));
+    }
+
+    public function test_only_copies_of_stored_photos_are_made_on_request(): void
+    {
+        Storage::fake('uploads');
+        $optimizer = app(ImageOptimizer::class);
+        $path = $optimizer->storeContents(UploadedFile::fake()->image('a.jpg', 2000, 1500)->getContent(), 'cottages');
+        $name = substr($path, 0, -5);
+
+        $this->get('/uploads/'.$name.'-333.webp')->assertNotFound(); // not a copy size the site makes
+        $this->get('/uploads/'.$name.'-480-320.webp')->assertNotFound(); // a copy of a copy
+        $this->get('/uploads/cottages/'.str_repeat('a', 40).'-320.webp')->assertNotFound(); // no such photo
+        $this->get('/uploads/cottages/../../'.basename($name).'-320.webp')->assertNotFound();
+        Storage::disk('uploads')->assertMissing($name.'-333.webp');
     }
 }

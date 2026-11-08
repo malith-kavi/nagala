@@ -2,6 +2,17 @@
     "heroSizes": "(max-aspect-ratio: 1670/942) calc((100vh - 72px) * 1.773), 100vw",
     "headerImage": "/images/design/cliffs-header.webp",
     "headerSizes": "100vw",
+    "gallerySizes": {
+        "cottage": {
+            "main": "(min-width: 1152px) 590px, (min-width: 640px) calc(55vw - 32px), calc(100vw - 32px)",
+            "alone": "(min-width: 1152px) 1088px, calc(100vw - 32px)"
+        },
+        "place": {
+            "main": "(min-width: 1024px) 520px, (min-width: 640px) calc(55vw - 32px), calc(100vw - 32px)",
+            "alone": "(min-width: 1024px) 960px, calc(100vw - 32px)"
+        }
+    },
+    "packagePhotoSizes": "(min-width: 1152px) 708px, (min-width: 1024px) calc(100vw - 444px), (min-width: 640px) calc(100vw - 48px), calc(100vw - 32px)",
     "copies": {
         "/images/hero_l.jpg": {
             "avif": "/images/hero_l.avif 1670w, /images/hero_l-2500.avif 2500w, /images/hero_l-2x.avif 3340w",

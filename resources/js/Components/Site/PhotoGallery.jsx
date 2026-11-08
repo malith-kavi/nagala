@@ -2,15 +2,37 @@ import ImageWithFallback from '@/Components/Site/ImageWithFallback';
 import Lightbox from '@/Components/Site/Lightbox';
 import { useState } from 'react';
 
+// The tile grid beside the main photo: 460px tall, and at most 490px wide (on screens 1152px and up).
+const GRID_HEIGHT = 460;
+const GRID_MAX_WIDTH = 490;
+const TILE_GAP = 8;
+
+/**
+ * How wide a tile's photo is drawn. Tiles are cropped from landscape photos (about 4:3), so a tile
+ * shorter than it is wide still draws its photo wider than the tile. Getting this right lets the
+ * browser pick the 320px copy for a full 4×4 grid rather than one twice the size.
+ */
+function tileSizes(columns, rows) {
+    const width = (GRID_MAX_WIDTH - TILE_GAP * (columns - 1)) / columns;
+    const height = (GRID_HEIGHT - TILE_GAP * (rows - 1)) / rows;
+    return `${Math.ceil(Math.max(width, (height * 4) / 3))}px`;
+}
+
 /**
  * Detail-page photos: a main photo with up to 16 tiles beside it (a swipeable strip on mobile).
  * Any photo opens the lightbox. `photos` is a list of `{ url, caption }`, cover first.
+ * `sizes` is how wide the main photo is drawn on the page, from gallerySizes in lib/bundledImages.json:
+ * `main` with tiles beside it, `alone` without.
+ * The main photo is the one the page waits on: app.blade.php starts downloading it with the page
+ * (App\Support\FirstPhotoPreload, which reads the same sizes), and the tiles load at low priority
+ * so they don't slow it down on a weak signal.
  */
-export default function PhotoGallery({ photos, name, className = '' }) {
+export default function PhotoGallery({ photos, name, sizes, className = '' }) {
     // Up to 16 tiles beside the main photo, in a near-square grid (4×4 when full).
     const thumbs = photos.slice(1, 17);
     const thumbColumns = Math.min(4, Math.ceil(Math.sqrt(thumbs.length)));
     const thumbRows = Math.ceil(thumbs.length / thumbColumns) || 1;
+    const thumbSizes = tileSizes(thumbColumns, thumbRows);
     const [lightbox, setLightbox] = useState(null);
 
     return (
@@ -23,7 +45,8 @@ export default function PhotoGallery({ photos, name, className = '' }) {
                         alt={name}
                         label={name}
                         loading="eager"
-                        sizes={thumbs.length ? '(min-width: 1152px) 640px, (min-width: 640px) 55vw, 100vw' : '(min-width: 1152px) 1152px, 100vw'}
+                        fetchPriority="high"
+                        sizes={thumbs.length ? sizes.main : sizes.alone}
                         className={`aspect-[16/10] h-full w-full ${thumbs.length ? 'sm:aspect-auto' : ''}`}
                     />
                 </button>
@@ -41,7 +64,8 @@ export default function PhotoGallery({ photos, name, className = '' }) {
                                 <button key={p.url} type="button" onClick={() => setLightbox(i + 1)} className="group relative isolate overflow-hidden rounded-lg">
                                     <ImageWithFallback
                                         src={p.url}
-                                        sizes="240px"
+                                        sizes={thumbSizes}
+                                        fetchPriority="low"
                                         className="absolute inset-0 h-full w-full transition-transform duration-700 ease-smooth group-hover:scale-105"
                                     />
                                     {more > 0 && (
@@ -61,7 +85,7 @@ export default function PhotoGallery({ photos, name, className = '' }) {
                 <div className="scrollbar-none -mx-4 mt-3 flex snap-x gap-2 overflow-x-auto px-4 sm:hidden">
                     {photos.slice(1).map((p, i) => (
                         <button key={p.url} type="button" onClick={() => setLightbox(i + 1)} className="shrink-0 snap-start overflow-hidden rounded-lg">
-                            <ImageWithFallback src={p.url} sizes="112px" className="h-20 w-28" />
+                            <ImageWithFallback src={p.url} sizes="112px" fetchPriority="low" className="h-20 w-28" />
                         </button>
                     ))}
                 </div>

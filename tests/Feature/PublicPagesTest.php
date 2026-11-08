@@ -86,4 +86,41 @@ class PublicPagesTest extends TestCase
 
         $this->assertSame(['Edited'], MenuSection::first()->items);
     }
+
+    /** The <link rel="preload"> app.blade.php writes for an uploaded photo, drawn $sizes wide. */
+    private function photoPreload(string $name, string $sizes): string
+    {
+        $base = "/uploads/{$name}";
+
+        return '<link rel="preload" as="image" fetchpriority="high" '
+            ."imagesrcset=\"{$base}-320.webp 320w, {$base}-480.webp 480w, {$base}-640.webp 640w, {$base}-960.webp 960w, {$base}-1280.webp 1280w, {$base}.webp 2048w\" "
+            ."imagesizes=\"{$sizes}\">";
+    }
+
+    public function test_detail_pages_start_loading_their_main_photo_with_the_page(): void
+    {
+        $sizes = json_decode(file_get_contents(resource_path('js/lib/bundledImages.json')), true);
+        $cover = 'cottages/'.str_repeat('a', 40);
+        $other = 'cottages/'.str_repeat('b', 40).'.webp';
+
+        $cottage = Cottage::factory()->create(['cover_image' => "{$cover}.webp", 'images' => [$other]]);
+        $this->get(route('cottages.show', $cottage->slug))->assertOk()
+            ->assertSee($this->photoPreload($cover, $sizes['gallerySizes']['cottage']['main']), false);
+
+        // With no other photos, the cover is drawn the full width of the page.
+        $cottage->update(['images' => []]);
+        $this->get(route('cottages.show', $cottage->slug))
+            ->assertSee($this->photoPreload($cover, $sizes['gallerySizes']['cottage']['alone']), false);
+
+        // A place without a cover opens with its first photo; its page is narrower than a cottage's.
+        $place = NearbyPlace::where('is_active', true)->firstOrFail();
+        $place->update(['cover_image' => null, 'images' => ["{$cover}.webp", $other]]);
+        $this->get(route('places.show', $place->slug))->assertOk()
+            ->assertSee($this->photoPreload($cover, $sizes['gallerySizes']['place']['main']), false);
+
+        $package = Package::where('is_active', true)->firstOrFail();
+        $package->update(['cover_image' => "{$cover}.webp"]);
+        $this->get(route('packages.show', $package->slug))->assertOk()
+            ->assertSee($this->photoPreload($cover, $sizes['packagePhotoSizes']), false);
+    }
 }

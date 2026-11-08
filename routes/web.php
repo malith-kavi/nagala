@@ -9,6 +9,7 @@ use App\Http\Controllers\GalleryController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\NearbyPlaceController;
 use App\Http\Controllers\PackageController;
+use App\Http\Controllers\PhotoCopyController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -42,6 +43,9 @@ Route::get('/book', [BookingController::class, 'create'])->name('book');
 Route::post('/book', [BookingController::class, 'store'])->middleware('throttle:10,1')->name('book.store');
 Route::get('/booking/{reference}', [BookingController::class, 'show'])->middleware('throttle:30,1')->name('booking.show');
 Route::get('/api/availability', [BookingController::class, 'availability'])->middleware('throttle:60,1')->name('availability');
+
+// A smaller copy of an uploaded photo that hasn't been made yet; existing copies are served by the web server.
+Route::get('/uploads/{path}', PhotoCopyController::class)->where('path', '.+-[0-9]+\.(webp|jpg)')->name('uploads.copy');
 
 /*
 |--------------------------------------------------------------------------

@@ -5,7 +5,9 @@ import PrefetchLink from '@/Components/Site/PrefetchLink';
 import Prose from '@/Components/Site/Prose';
 import SectionHeading from '@/Components/Site/SectionHeading';
 import SiteLayout from '@/Layouts/SiteLayout';
+import { packagePhotoSizes } from '@/lib/bundledImages.json';
 import { formatLKR } from '@/lib/format';
+import { cardSizes } from '@/lib/imageSrcSet';
 import { usePage } from '@inertiajs/react';
 import { ArrowLeft, CalendarDays, Clock, House, Utensils } from 'lucide-react';
 import { Fragment } from 'react';
@@ -22,7 +24,17 @@ export default function PackageShow({ package: pkg, cottages, others }) {
 
                 <div className="mt-4 grid gap-10 lg:grid-cols-[1fr_340px]">
                     <div>
-                        <ImageWithFallback src={pkg.cover_image_url} alt={pkg.name} label={pkg.name} className="aspect-[16/9] w-full rounded-xl" />
+                        {/* The photo the page waits on: app.blade.php starts downloading it with the page
+                            (App\Support\FirstPhotoPreload, which reads the same sizes). */}
+                        <ImageWithFallback
+                            src={pkg.cover_image_url}
+                            alt={pkg.name}
+                            label={pkg.name}
+                            loading="eager"
+                            fetchPriority="high"
+                            sizes={packagePhotoSizes}
+                            className="aspect-[16/9] w-full rounded-xl"
+                        />
                         <p className="eyebrow mt-8">Full Board Package</p>
                         <h1 className="mt-1 font-display text-4xl font-semibold text-forest-800 sm:text-5xl">{pkg.name}</h1>
                         {pkg.short_description && <p className="mt-3 text-lg text-stone-600">{pkg.short_description}</p>}
@@ -83,7 +95,7 @@ export default function PackageShow({ package: pkg, cottages, others }) {
                         <SectionHeading eyebrow="More Offers" title="Other Packages" />
                         <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                             {others.map((p) => (
-                                <PackageCard key={p.id} pkg={p} />
+                                <PackageCard key={p.id} pkg={p} sizes={cardSizes(3, { container: 1152 })} />
                             ))}
                         </div>
                     </div>

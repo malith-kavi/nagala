@@ -1,6 +1,12 @@
+import { srcSetFor } from '@/lib/imageSrcSet';
 import { Transition } from '@headlessui/react';
-import { ChevronLeft, ChevronRight, X } from 'lucide-react';
-import { useCallback, useEffect, useRef } from 'react';
+import { ChevronLeft, ChevronRight, LoaderCircle, X } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+
+// How wide the photo is drawn: the screen less the 16px padding each side, at most max-w-5xl (1024px).
+// Uploaded photos then come as the copy that fits (on a phone, about a quarter of the full-size photo)
+// rather than the full 2048px one, which can be up to 1 MB.
+const SIZES = '(min-width: 1056px) 1024px, calc(100vw - 32px)';
 
 export default function Lightbox({ images, index, onClose, onChange }) {
     const open = index !== null && index !== undefined;
@@ -11,6 +17,8 @@ export default function Lightbox({ images, index, onClose, onChange }) {
     const shownIndex = useRef(index);
     if (open) shownIndex.current = index;
     const image = images[shownIndex.current];
+    const [loadedUrl, setLoadedUrl] = useState(null);
+    const loaded = loadedUrl === image?.url;
 
     useEffect(() => {
         if (!open) return;
@@ -27,14 +35,22 @@ export default function Lightbox({ images, index, onClose, onChange }) {
         };
     }, [open, onClose, prev, next]);
 
-    // Load the photos either side, so stepping through them doesn't wait on a download.
+    // Once this photo is in, load the photos either side (the same copy this one used), so stepping
+    // through them doesn't wait on a download. Not before: on a weak signal they'd slow this one down.
     useEffect(() => {
-        if (!open || images.length < 2) return;
+        if (!open || !loaded || images.length < 2) return;
         [index - 1, index + 1].forEach((i) => {
             const neighbour = images[(i + images.length) % images.length];
-            if (neighbour?.url) new Image().src = neighbour.url;
+            if (!neighbour?.url) return;
+            const preload = new Image();
+            const srcSet = srcSetFor(neighbour.url);
+            if (srcSet) {
+                preload.sizes = SIZES;
+                preload.srcset = srcSet;
+            }
+            preload.src = neighbour.url;
         });
-    }, [open, index, images]);
+    }, [open, loaded, index, images]);
 
     return (
         <Transition show={open}>
@@ -71,6 +87,12 @@ export default function Lightbox({ images, index, onClose, onChange }) {
                         </button>
                     </>
                 )}
+                {/* Only shown if the photo takes a moment, so cached photos don't flash it. */}
+                {open && image && !loaded && (
+                    <span className="pointer-events-none absolute animate-fade-in [animation-delay:300ms]" aria-hidden>
+                        <LoaderCircle className="h-8 w-8 animate-spin text-white/60" />
+                    </span>
+                )}
                 {image && (
                     // Grows gently into place as the lightbox opens; each photo fades in as you step to it.
                     <figure
@@ -78,7 +100,15 @@ export default function Lightbox({ images, index, onClose, onChange }) {
                         className="max-h-full max-w-5xl animate-fade-in transition duration-300 ease-smooth motion-safe:group-data-[closed]:scale-95"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <img src={image.url} alt={image.caption || ''} className="max-h-[85vh] w-auto rounded-lg object-contain" />
+                        <img
+                            src={image.url}
+                            srcSet={srcSetFor(image.url)}
+                            sizes={srcSetFor(image.url) ? SIZES : undefined}
+                            alt={image.caption || ''}
+                            onLoad={() => setLoadedUrl(image.url)}
+                            onError={() => setLoadedUrl(image.url)}
+                            className="max-h-[85vh] w-auto rounded-lg object-contain"
+                        />
                         {image.caption && <figcaption className="mt-3 text-center text-sm text-cream-200">{image.caption}</figcaption>}
                     </figure>
                 )}

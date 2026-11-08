@@ -181,12 +181,16 @@
             return fontsReady || !document.fonts;
         }
 
-        // Photos visible without scrolling, such as the hero.
+        // Images loaded eagerly and in view: the logo, and the photo the first screen is built around (the
+        // hero, a page header, or a cottage's main photo). Lazy photos, such as cards and the tiles beside a
+        // cottage's photo, shimmer on their own until they arrive; waiting for them too held the page back
+        // by seconds on a weak signal. Photos scrolled out of sight sideways, as in the phone strip, don't count.
         function photosLoaded() {
-            var images = document.querySelectorAll('#app img');
+            var images = document.querySelectorAll('#app img:not([loading="lazy"])');
             for (var i = 0; i < images.length; i++) {
                 var box = images[i].getBoundingClientRect();
-                if (box.width && box.bottom > 0 && box.top < window.innerHeight && !images[i].complete) return false;
+                var inView = box.width && box.bottom > 0 && box.top < window.innerHeight && box.right > 0 && box.left < window.innerWidth;
+                if (inView && !images[i].complete) return false;
             }
             return true;
         }
