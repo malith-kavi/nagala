@@ -1,1 +1,0 @@
-import{j as s}from"./app-BM_lONnx.js";function l({text:e,className:r=""}){return e?s.jsx("div",{className:`space-y-4 leading-relaxed text-stone-700 ${r}`,children:e.split(/\n{2,}/).map((n,a)=>s.jsx("p",{className:"whitespace-pre-line",children:n},a))}):null}export{l as P};

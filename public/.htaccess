@@ -50,6 +50,11 @@
 </IfModule>
 
 <IfModule mod_headers.c>
+    # Keep browsers on HTTP/2. Hostinger's CDN advertises HTTP/3 (alt-svc: h3), and once Chrome
+    # switched to it, requests to the CDN could go unanswered: reloads and link clicks hung with
+    # no response (tested 8 Nov 2026 from Sri Lanka, Mumbai edge; HTTP/3 to other sites was fine).
+    Header always set Alt-Svc "clear"
+
     # Built files (app-AbC123xy.js) and uploaded photos (40 random characters) get a new name
     # whenever they change, so browsers can keep them for good.
     <FilesMatch "(-[A-Za-z0-9_-]{8}\.(js|css|woff2)|^[A-Za-z0-9]{40}(-[0-9]+)?\.(webp|jpe?g|png))$">
