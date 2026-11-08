@@ -1,8 +1,9 @@
+import { Transition } from '@headlessui/react';
 import { Bird, Moon } from 'lucide-react';
 import { useEffect, useState, useSyncExternalStore } from 'react';
 
 // Birdsong goes with the sunset hero (light mode), the cricket-and-frog chorus with the night one.
-const TRACKS = { day: '/audio/birdsong.mp3', night: '/audio/night.mp3' };
+const TRACKS = { day: '/audio/birdsong.m4a', night: '/audio/night.m4a' };
 const VOLUME = 0.6;
 const PREF_KEY = 'nagala:birdsong';
 const HINT_KEY = 'nagala:birdsong-hint';
@@ -195,7 +196,7 @@ export default function BirdsongToggle() {
                 aria-pressed={isPlaying}
                 aria-label={label}
                 title={label}
-                className={`group relative flex h-12 w-12 items-center justify-center rounded-full shadow-xl ring-1 backdrop-blur transition hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf-500 ${
+                className={`group relative flex h-12 w-12 items-center justify-center rounded-full shadow-xl ring-1 backdrop-blur transition duration-300 ease-smooth hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf-500 ${
                     isPlaying ? 'bg-forest-800 text-cream-50 ring-forest-700' : 'bg-white/90 text-forest-800 ring-stone-200'
                 }`}
             >
@@ -216,16 +217,16 @@ export default function BirdsongToggle() {
                 )}
             </button>
 
-            {hint && !isPlaying && (
+            <Transition show={hint && !isPlaying}>
                 <button
                     type="button"
                     data-birdsong-toggle
                     onClick={toggle}
-                    className="animate-fade-up rounded-full bg-white/95 px-4 py-2 text-xs font-medium text-forest-800 shadow-lg ring-1 ring-stone-200 backdrop-blur hover:bg-white"
+                    className="rounded-full bg-white/95 px-4 py-2 text-xs font-medium text-forest-800 shadow-lg ring-1 ring-stone-200 backdrop-blur transition duration-500 ease-smooth hover:bg-white data-[closed]:opacity-0 motion-safe:data-[closed]:-translate-x-2"
                 >
                     {isNight ? 'Hear the Nagala night' : 'Hear the birds of Nagala'}
                 </button>
-            )}
+            </Transition>
         </div>
     );
 }

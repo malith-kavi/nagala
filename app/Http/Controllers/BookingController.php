@@ -25,8 +25,8 @@ class BookingController extends Controller
     public function create(Request $request): Response
     {
         return Inertia::render('Book', [
-            'cottages' => Cottage::active()->get(),
-            'packages' => Package::active()->get(),
+            'cottages' => Cottage::active()->get()->makeHidden(Cottage::CARD_HIDDEN),
+            'packages' => Package::active()->get()->makeHidden(Package::CARD_HIDDEN),
             'preselect' => [
                 'cottage' => $request->query('cottage'),
                 'package' => $request->query('package'),

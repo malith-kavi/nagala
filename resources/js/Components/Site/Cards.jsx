@@ -1,8 +1,8 @@
 import { Amenity, featureIcon, isMeal, Pax } from '@/Components/Site/Amenity';
 import ImageWithFallback from '@/Components/Site/ImageWithFallback';
+import PrefetchLink from '@/Components/Site/PrefetchLink';
 import { formatLKR } from '@/lib/format';
 import { cardSizes } from '@/lib/imageSrcSet';
-import { Link } from '@inertiajs/react';
 import { ArrowRight, BedDouble, Car, MapPin } from 'lucide-react';
 
 /** "Breakfast, Lunch & Dinner" */
@@ -16,9 +16,9 @@ function CardFooter({ href, price, unit, from = false, cta }) {
                 {from && 'From '}
                 <span className="text-xl font-bold text-stone-900">{formatLKR(price)}</span> <span className="text-stone-500">{unit}</span>
             </p>
-            <Link href={href} className="btn-primary mt-4 w-full rounded-md">
+            <PrefetchLink href={href} className="btn-primary mt-4 w-full rounded-md">
                 {cta} <ArrowRight className="h-4 w-4" />
-            </Link>
+            </PrefetchLink>
         </div>
     );
 }
@@ -27,19 +27,19 @@ export function CottageCard({ cottage, className = '', sizes = cardSizes(4) }) {
     const href = route('cottages.show', cottage.slug);
 
     return (
-        <article className={`card flex flex-col ${className}`}>
-            <Link href={href} className="block overflow-hidden">
+        <article className={`card group flex flex-col ${className}`}>
+            <PrefetchLink href={href} className="block overflow-hidden">
                 <ImageWithFallback
                     src={cottage.cover_image_url}
                     alt={cottage.name}
                     label={cottage.name}
                     sizes={sizes}
-                    className="aspect-[4/3] w-full transition duration-500 hover:scale-105"
+                    className="aspect-[4/3] w-full transition-transform duration-700 ease-smooth group-hover:scale-105"
                 />
-            </Link>
+            </PrefetchLink>
             <div className="flex flex-1 flex-col p-5">
                 <h3 className="text-lg font-semibold text-stone-900">
-                    <Link href={href}>{cottage.name}</Link>
+                    <PrefetchLink href={href}>{cottage.name}</PrefetchLink>
                 </h3>
                 <ul className="mt-3 space-y-1.5 text-[13px]">
                     <Amenity lead={<Pax count={cottage.max_guests} />}>Sleeps {cottage.max_guests}</Amenity>
@@ -60,19 +60,19 @@ export function PlaceCard({ place, className = '', sizes = cardSizes(4) }) {
     const href = route('places.show', place.slug);
 
     return (
-        <article className={`card flex flex-col ${className}`}>
-            <Link href={href} className="block overflow-hidden">
+        <article className={`card group flex flex-col ${className}`}>
+            <PrefetchLink href={href} className="block overflow-hidden">
                 <ImageWithFallback
                     src={place.cover_image_url}
                     alt={place.name}
                     label={place.name}
                     sizes={sizes}
-                    className="aspect-[4/3] w-full transition duration-500 hover:scale-105"
+                    className="aspect-[4/3] w-full transition-transform duration-700 ease-smooth group-hover:scale-105"
                 />
-            </Link>
+            </PrefetchLink>
             <div className="flex flex-1 flex-col p-4">
                 <h3 className="font-semibold leading-snug text-stone-900">
-                    <Link href={href}>{place.name}</Link>
+                    <PrefetchLink href={href}>{place.name}</PrefetchLink>
                 </h3>
                 <ul className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs">
                     <Amenity icon={MapPin} size="xs">
@@ -85,9 +85,9 @@ export function PlaceCard({ place, className = '', sizes = cardSizes(4) }) {
                     )}
                 </ul>
                 <p className="mt-2 flex-1 text-xs leading-relaxed text-stone-600">{place.short_description}</p>
-                <Link href={href} className="btn-primary mt-3 w-full rounded-md px-3 py-1.5 text-xs">
+                <PrefetchLink href={href} className="btn-primary mt-3 w-full rounded-md px-3 py-1.5 text-xs">
                     View Details <ArrowRight className="h-3.5 w-3.5" />
-                </Link>
+                </PrefetchLink>
             </div>
         </article>
     );
@@ -104,19 +104,19 @@ export function PackageCard({ pkg, className = '', sizes = cardSizes(3) }) {
     const extras = inclusions.filter((i) => !isMeal(i.label));
 
     return (
-        <article className={`card flex flex-col ${className}`}>
-            <Link href={href} className="block overflow-hidden">
+        <article className={`card group flex flex-col ${className}`}>
+            <PrefetchLink href={href} className="block overflow-hidden">
                 <ImageWithFallback
                     src={pkg.cover_image_url}
                     alt={pkg.name}
                     label={pkg.name}
                     sizes={sizes}
-                    className="aspect-[16/9] w-full transition duration-500 hover:scale-105"
+                    className="aspect-[16/9] w-full transition-transform duration-700 ease-smooth group-hover:scale-105"
                 />
-            </Link>
+            </PrefetchLink>
             <div className="flex flex-1 flex-col p-5">
                 <h3 className="text-lg font-semibold text-stone-900">
-                    <Link href={href}>{pkg.name}</Link>
+                    <PrefetchLink href={href}>{pkg.name}</PrefetchLink>
                 </h3>
                 <ul className="mt-3 space-y-1.5 text-[13px]">
                     <Amenity lead={<Pax count={pkg.guests} />}>{pkg.guests} Guests</Amenity>

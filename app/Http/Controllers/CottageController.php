@@ -11,7 +11,7 @@ class CottageController extends Controller
     public function index(): Response
     {
         return Inertia::render('Cottages/Index', [
-            'cottages' => Cottage::active()->get(),
+            'cottages' => Cottage::active()->get()->makeHidden(Cottage::CARD_HIDDEN),
         ]);
     }
 
@@ -21,7 +21,7 @@ class CottageController extends Controller
 
         return Inertia::render('Cottages/Show', [
             'cottage' => $cottage,
-            'others' => Cottage::active()->whereKeyNot($cottage->id)->get(),
+            'others' => Cottage::active()->whereKeyNot($cottage->id)->get()->makeHidden(Cottage::CARD_HIDDEN),
         ]);
     }
 }

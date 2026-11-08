@@ -18,6 +18,16 @@ class NearbyPlace extends Model
 
     protected $appends = ['image_urls'];
 
+    /**
+     * Left out where places are listed on cards: the long text, every photo and bookkeeping
+     * fields, which made list pages several times heavier to download on a weak signal.
+     * Use with makeHidden(); a place's own page still gets everything.
+     */
+    public const CARD_HIDDEN = [
+        'description', 'images', 'image_urls', 'cover_image', 'cover_credit', 'map_url',
+        'is_active', 'sort_order', 'created_at', 'updated_at',
+    ];
+
     protected function casts(): array
     {
         return [

@@ -11,9 +11,9 @@ import CoverBox from '@/Components/Site/CoverBox';
 const SKIES = {
     '/images/hero_l.jpg': {
         ratio: 1670 / 942,
-        light: '/images/hero_l-sky-light.jpg',
-        screen: '/images/hero_l-clouds-screen.jpg',
-        multiply: '/images/hero_l-clouds-multiply.jpg',
+        light: '/images/hero_l-sky-light.webp',
+        screen: '/images/hero_l-clouds-screen.webp',
+        multiply: '/images/hero_l-clouds-multiply.webp',
         mask: '/images/hero_l-sky-mask.png',
     },
 };

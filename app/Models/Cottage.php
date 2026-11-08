@@ -54,6 +54,16 @@ class Cottage extends Model
 
     protected $appends = ['image_urls', 'feature_list'];
 
+    /**
+     * Left out where cottages are listed (cards, the booking form): the long text, every photo and
+     * bookkeeping fields, which made list pages several times heavier to download on a weak signal.
+     * Use with makeHidden(); a cottage's own page still gets everything.
+     */
+    public const CARD_HIDDEN = [
+        'short_description', 'description', 'images', 'image_urls', 'features', 'cover_image',
+        'units', 'is_active', 'sort_order', 'created_at', 'updated_at',
+    ];
+
     protected function casts(): array
     {
         return [

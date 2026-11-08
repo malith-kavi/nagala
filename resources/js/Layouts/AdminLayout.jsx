@@ -1,5 +1,6 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import FlashMessage from '@/Components/Site/FlashMessage';
+import { Transition, TransitionChild } from '@headlessui/react';
 import { Head, Link, usePage } from '@inertiajs/react';
 import {
     CalendarDays,
@@ -89,14 +90,22 @@ export default function AdminLayout({ title, actions, children }) {
                 <Sidebar />
             </aside>
 
-            {open && (
+            {/* Mobile menu: the sidebar slides in over a fading backdrop */}
+            <Transition show={open}>
                 <div className="fixed inset-0 z-50 lg:hidden">
-                    <div className="absolute inset-0 bg-black/50" onClick={() => setOpen(false)} />
-                    <aside className="absolute inset-y-0 left-0 w-64">
-                        <Sidebar onNavigate={() => setOpen(false)} />
-                    </aside>
+                    <TransitionChild>
+                        <div
+                            className="absolute inset-0 bg-black/50 transition-opacity duration-300 ease-smooth data-[closed]:opacity-0"
+                            onClick={() => setOpen(false)}
+                        />
+                    </TransitionChild>
+                    <TransitionChild>
+                        <aside className="absolute inset-y-0 left-0 w-64 transition-transform duration-300 ease-smooth data-[closed]:-translate-x-full">
+                            <Sidebar onNavigate={() => setOpen(false)} />
+                        </aside>
+                    </TransitionChild>
                 </div>
-            )}
+            </Transition>
 
             <div className="lg:pl-64">
                 <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-stone-200 bg-white px-4 sm:px-8">

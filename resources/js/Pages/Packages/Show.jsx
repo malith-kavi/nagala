@@ -1,11 +1,12 @@
 import { Amenity, featureIcon, isMeal, Pax } from '@/Components/Site/Amenity';
 import { PackageCard, packageUnit } from '@/Components/Site/Cards';
 import ImageWithFallback from '@/Components/Site/ImageWithFallback';
+import PrefetchLink from '@/Components/Site/PrefetchLink';
 import Prose from '@/Components/Site/Prose';
 import SectionHeading from '@/Components/Site/SectionHeading';
 import SiteLayout from '@/Layouts/SiteLayout';
 import { formatLKR } from '@/lib/format';
-import { Link, usePage } from '@inertiajs/react';
+import { usePage } from '@inertiajs/react';
 import { ArrowLeft, CalendarDays, Clock, House, Utensils } from 'lucide-react';
 import { Fragment } from 'react';
 
@@ -15,9 +16,9 @@ export default function PackageShow({ package: pkg, cottages, others }) {
     return (
         <SiteLayout title={pkg.name}>
             <section className="mx-auto max-w-6xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
-                <Link href={route('packages.index')} className="inline-flex items-center gap-1 text-sm text-forest-700 hover:underline">
+                <PrefetchLink href={route('packages.index')} className="inline-flex items-center gap-1 text-sm text-forest-700 hover:underline">
                     <ArrowLeft className="h-4 w-4" /> All packages
-                </Link>
+                </PrefetchLink>
 
                 <div className="mt-4 grid gap-10 lg:grid-cols-[1fr_340px]">
                     <div>
@@ -42,9 +43,9 @@ export default function PackageShow({ package: pkg, cottages, others }) {
                                         {cottages.map((c, i) => (
                                             <Fragment key={c.id}>
                                                 {i > 0 && ' or '}
-                                                <Link href={route('cottages.show', c.slug)} className="text-forest-700 underline">
+                                                <PrefetchLink href={route('cottages.show', c.slug)} className="text-forest-700 underline">
                                                     {c.name}
-                                                </Link>
+                                                </PrefetchLink>
                                             </Fragment>
                                         ))}
                                     </span>
@@ -66,12 +67,12 @@ export default function PackageShow({ package: pkg, cottages, others }) {
                                 </ul>
                             </>
                         )}
-                        <Link href={route('dining')} className="mt-5 inline-flex items-center gap-1.5 text-sm font-medium text-forest-700 hover:underline">
+                        <PrefetchLink href={route('dining')} className="mt-5 inline-flex items-center gap-1.5 text-sm font-medium text-forest-700 hover:underline">
                             <Utensils className="h-4 w-4" /> See what&rsquo;s on the menu
-                        </Link>
-                        <Link href={route('book', { package: pkg.slug })} className="btn-leaf mt-6 w-full">
+                        </PrefetchLink>
+                        <PrefetchLink href={route('book', { package: pkg.slug })} className="btn-leaf mt-6 w-full">
                             <CalendarDays className="h-4 w-4" /> Book this package
-                        </Link>
+                        </PrefetchLink>
                     </aside>
                 </div>
             </section>

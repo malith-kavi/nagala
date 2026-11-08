@@ -1,7 +1,7 @@
 import { mealIcon } from '@/Components/Site/Amenity';
 import PageHeader from '@/Components/Site/PageHeader';
+import PrefetchLink from '@/Components/Site/PrefetchLink';
 import SiteLayout from '@/Layouts/SiteLayout';
-import { Link } from '@inertiajs/react';
 import { ArrowRight, Coffee, GlassWater } from 'lucide-react';
 
 export default function Dining({ meals }) {
@@ -72,9 +72,9 @@ export default function Dining({ meals }) {
                 {served.length === 0 && <p className="mt-10 text-center text-stone-500">Our menu will be listed here soon.</p>}
 
                 <div className="mt-12 flex flex-wrap justify-center gap-4">
-                    <Link href={route('packages.index')} className="btn-leaf">
+                    <PrefetchLink href={route('packages.index')} className="btn-leaf">
                         View full board packages <ArrowRight className="h-4 w-4" />
-                    </Link>
+                    </PrefetchLink>
                 </div>
             </section>
         </SiteLayout>

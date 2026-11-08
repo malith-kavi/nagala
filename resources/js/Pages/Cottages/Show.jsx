@@ -1,12 +1,13 @@
 import { Amenity, featureIcon, Pax } from '@/Components/Site/Amenity';
 import { CottageCard } from '@/Components/Site/Cards';
 import PhotoGallery from '@/Components/Site/PhotoGallery';
+import PrefetchLink from '@/Components/Site/PrefetchLink';
 import Prose from '@/Components/Site/Prose';
 import SectionHeading from '@/Components/Site/SectionHeading';
 import SiteLayout from '@/Layouts/SiteLayout';
 import { formatLKR } from '@/lib/format';
 import { cardSizes } from '@/lib/imageSrcSet';
-import { Link, usePage } from '@inertiajs/react';
+import { usePage } from '@inertiajs/react';
 import { ArrowLeft, Banknote, BedDouble, CalendarDays, Check, Clock, GlassWater, Zap } from 'lucide-react';
 
 export default function CottageShow({ cottage, others }) {
@@ -16,9 +17,9 @@ export default function CottageShow({ cottage, others }) {
     return (
         <SiteLayout title={cottage.name}>
             <section className="mx-auto max-w-6xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
-                <Link href={route('cottages.index')} className="inline-flex items-center gap-1 text-sm text-forest-700 hover:underline">
+                <PrefetchLink href={route('cottages.index')} className="inline-flex items-center gap-1 text-sm text-forest-700 hover:underline">
                     <ArrowLeft className="h-4 w-4" /> All cottages
-                </Link>
+                </PrefetchLink>
 
                 <PhotoGallery photos={photos} name={cottage.name} className="mt-4" />
 
@@ -78,9 +79,9 @@ export default function CottageShow({ cottage, others }) {
                                 Free cancellation – just let us know
                             </Amenity>
                         </ul>
-                        <Link href={route('book', { cottage: cottage.slug })} className="btn-leaf mt-6 w-full">
+                        <PrefetchLink href={route('book', { cottage: cottage.slug })} className="btn-leaf mt-6 w-full">
                             <CalendarDays className="h-4 w-4" /> Book this cottage
-                        </Link>
+                        </PrefetchLink>
                     </aside>
                 </div>
             </section>

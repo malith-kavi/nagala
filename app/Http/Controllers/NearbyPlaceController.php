@@ -11,7 +11,7 @@ class NearbyPlaceController extends Controller
     public function index(): Response
     {
         return Inertia::render('Places/Index', [
-            'places' => NearbyPlace::active()->get(),
+            'places' => NearbyPlace::active()->get()->makeHidden(NearbyPlace::CARD_HIDDEN),
         ]);
     }
 
@@ -21,7 +21,7 @@ class NearbyPlaceController extends Controller
 
         return Inertia::render('Places/Show', [
             'place' => $place,
-            'others' => NearbyPlace::active()->whereKeyNot($place->id)->take(3)->get(),
+            'others' => NearbyPlace::active()->whereKeyNot($place->id)->take(3)->get()->makeHidden(NearbyPlace::CARD_HIDDEN),
         ]);
     }
 }

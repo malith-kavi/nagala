@@ -36,22 +36,23 @@ export default function Gallery({ images, categories }) {
                 )}
 
                 {visible.length ? (
-                    <div className="columns-2 gap-3 sm:gap-4 md:columns-3 lg:columns-4">
+                    // Keyed by the filter, so switching category fades the new set of photos in.
+                    <div key={filter} className="columns-2 gap-3 animate-fade-in sm:gap-4 md:columns-3 lg:columns-4">
                         {visible.map((img, i) => (
                             <button
                                 key={img.id}
                                 type="button"
                                 onClick={() => setLightbox(i)}
-                                className="group relative mb-3 block w-full overflow-hidden rounded-xl break-inside-avoid sm:mb-4"
+                                className="group relative isolate mb-3 block w-full overflow-hidden rounded-xl break-inside-avoid sm:mb-4"
                             >
                                 <ImageWithFallback
                                     src={img.url}
                                     alt={img.caption || ''}
                                     sizes="(min-width: 1024px) 25vw, (min-width: 768px) 33vw, 50vw"
-                                    className="w-full transition duration-500 group-hover:scale-105"
+                                    className="w-full transition-transform duration-700 ease-smooth group-hover:scale-105"
                                 />
                                 {img.caption && (
-                                    <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-3 text-left text-sm text-white opacity-0 transition group-hover:opacity-100">
+                                    <span className="absolute inset-x-0 bottom-0 translate-y-1 bg-gradient-to-t from-black/70 to-transparent p-3 text-left text-sm text-white opacity-0 transition duration-300 ease-smooth group-hover:translate-y-0 group-hover:opacity-100">
                                         {img.caption}
                                     </span>
                                 )}

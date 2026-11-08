@@ -1,11 +1,28 @@
+/* Fonts served from this site rather than a font service: no extra connection to another server
+   on a weak signal. One variable file per family covers every weight; browsers download only the
+   Latin file the page needs. app.blade.php preloads both. */
+@import '@fontsource-variable/nunito';
+@import '@fontsource-variable/fredoka';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+    /* No global smooth scrolling: it made Inertia's jump to the top of each new page visibly glide
+       through it. Menu links and the carousel ask for smooth scrolling themselves (lib/motion). */
     html {
-        scroll-behavior: smooth;
+        /* Keeps the page from shifting sideways when the lightbox or sketch locks scrolling. */
+        scrollbar-gutter: stable;
     }
+}
+
+/* Page changes cross-fade (Inertia visits with viewTransition, set up in app.jsx). Both halves share
+   one duration and curve so they always add up to full opacity and nothing that stays put flickers. */
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation-duration: 0.3s;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @layer components {
@@ -34,7 +51,8 @@
     }
 
     .card {
-        @apply overflow-hidden rounded-xl bg-white shadow-[0_8px_30px_rgba(20,56,32,0.10)];
+        /* isolate keeps Safari clipping the rounded corners while the photo zooms on hover */
+        @apply isolate overflow-hidden rounded-xl bg-white shadow-[0_8px_30px_rgba(20,56,32,0.10)];
     }
 
     .input {
@@ -60,24 +78,24 @@
         display: none;
     }
 
-    /* Scroll reveal, driven by <Reveal> setting data-reveal on an ancestor */
+    /* Scroll reveal, driven by <Reveal> setting data-reveal on an ancestor.
+       Only opacity and transform animate, which the GPU handles without repainting; the blur the
+       cards used to fade in from repainted every card on every frame and stuttered on phones. */
     .reveal-item {
         transition:
-            opacity 0.7s ease,
-            transform 0.9s cubic-bezier(0.22, 1, 0.36, 1),
-            filter 0.7s ease;
+            opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+            transform 1s cubic-bezier(0.22, 1, 0.36, 1);
+        will-change: opacity, transform;
     }
 
     [data-reveal='below'] .reveal-item {
         opacity: 0;
-        transform: translateY(48px) scale(0.98);
-        filter: blur(4px);
+        transform: translateY(40px) scale(0.98);
     }
 
     [data-reveal='above'] .reveal-item {
         opacity: 0;
-        transform: translateY(-48px) scale(0.98);
-        filter: blur(4px);
+        transform: translateY(-40px) scale(0.98);
     }
 
     [data-reveal='shown'] .reveal-item {
@@ -88,9 +106,14 @@
         [data-reveal] .reveal-item {
             opacity: 1;
             transform: none;
-            filter: none;
             transition: none;
         }
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .animate-fade-up {
+        animation: none;
     }
 }
 
@@ -101,7 +124,7 @@
 }
 
 .img-reveal {
-    animation: img-reveal 0.7s ease-out;
+    animation: img-reveal 0.8s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 @keyframes img-shimmer {

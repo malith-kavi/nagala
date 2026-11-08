@@ -12,12 +12,15 @@ const shown = new Set();
  * An optional darkSrc is shown instead to visitors whose device is set to dark mode.
  * Uploaded photos come with smaller copies, so the browser loads the one that fits `sizes`
  * (how wide the photo is drawn; the full screen width if not given).
- * Optional webpSrcSet / darkWebpSrcSet offer WebP copies of bundled photos in several widths;
- * browsers without WebP use src.
+ * Optional webpSrcSet / darkWebpSrcSet offer WebP copies of bundled photos in several widths, and
+ * avifSrcSet smaller AVIF ones (scripts/optimize-bundled-media.sh); browsers take the first format
+ * they can show, falling back to src.
+ * fetchPriority="high" marks the photo the page is waiting on, such as a hero.
  */
 export default function ImageWithFallback({
     src,
     darkSrc,
+    avifSrcSet,
     webpSrcSet,
     darkWebpSrcSet,
     sizes,
@@ -25,6 +28,7 @@ export default function ImageWithFallback({
     className = '',
     label,
     loading = 'lazy',
+    fetchPriority,
 }) {
     const [failed, setFailed] = useState(false);
     // If a smaller copy can't be loaded, try the photo itself before giving up.
@@ -61,20 +65,24 @@ export default function ImageWithFallback({
             sizes={srcSet ? sizes : undefined}
             alt={alt}
             loading={loading}
+            // Lowercase: React 18 doesn't know the fetchPriority prop yet, and passes this through.
+            fetchpriority={fetchPriority}
             onLoad={loaded}
             onError={() => (srcSet || darkSrcSet ? setPlain(true) : setFailed(true))}
             className={`object-cover ${stage === 'loading' ? 'img-loading' : stage === 'reveal' ? 'img-reveal' : ''} ${className}`}
         />
     );
 
-    if (!darkSrc && !webpSrcSet) return img;
+    if (!darkSrc && !webpSrcSet && !avifSrcSet) return img;
 
     const dark = '(prefers-color-scheme: dark)';
 
+    // The dark-mode sources come first, so in dark mode they win over the (light) AVIF and WebP ones.
     return (
         <picture>
             {darkSrc && darkWebpSrcSet && <source media={dark} type="image/webp" srcSet={darkWebpSrcSet} sizes={sizes} />}
             {darkSrc && <source media={dark} srcSet={darkSrcSet ?? darkSrc} sizes={darkSrcSet ? sizes : undefined} />}
+            {avifSrcSet && <source type="image/avif" srcSet={avifSrcSet} sizes={sizes} />}
             {webpSrcSet && <source type="image/webp" srcSet={webpSrcSet} sizes={sizes} />}
             {img}
         </picture>

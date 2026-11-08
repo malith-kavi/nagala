@@ -1,4 +1,5 @@
 import Field from '@/Components/Site/Field';
+import MapEmbed from '@/Components/Site/MapEmbed';
 import PageHeader from '@/Components/Site/PageHeader';
 import { SocialIcon } from '@/Components/Site/SocialIcons';
 import SiteLayout from '@/Layouts/SiteLayout';
@@ -93,15 +94,7 @@ export default function Contact() {
                 </form>
             </section>
 
-            {settings.map_embed_url && (
-                <iframe
-                    title="Map to Nagala Eco Cottage"
-                    src={settings.map_embed_url}
-                    className="h-[380px] w-full border-0 grayscale-[30%]"
-                    loading="lazy"
-                    referrerPolicy="no-referrer-when-downgrade"
-                />
-            )}
+            {settings.map_embed_url && <MapEmbed url={settings.map_embed_url} address={settings.address} title="Map to Nagala Eco Cottage" />}
         </SiteLayout>
     );
 }

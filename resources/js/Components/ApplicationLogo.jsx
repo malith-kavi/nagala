@@ -6,8 +6,9 @@ const logos = {
 /**
  * Brand logo. `light` swaps to the cream/gold wordmark for dark backgrounds;
  * `stacked` uses the square emblem-over-wordmark version. Size it with a height class.
+ * Pass loading="lazy" for a logo far down the page, such as the footer's.
  */
-export default function ApplicationLogo({ light = false, stacked = false, className = 'h-14' }) {
+export default function ApplicationLogo({ light = false, stacked = false, className = 'h-14', loading }) {
     const logo = logos[stacked ? 'stacked' : 'horizontal'];
 
     return (
@@ -15,6 +16,7 @@ export default function ApplicationLogo({ light = false, stacked = false, classN
             src={light ? logo.light : logo.src}
             width={logo.width}
             height={logo.height}
+            loading={loading}
             alt="Nagala Eco Cottage"
             className={`w-auto select-none ${className}`}
             draggable={false}

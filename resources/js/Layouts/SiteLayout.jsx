@@ -2,9 +2,12 @@ import ApplicationLogo from '@/Components/ApplicationLogo';
 import BirdsongToggle from '@/Components/Site/Birdsong';
 import { FooterLeaves } from '@/Components/Site/DesignFoliage';
 import FlashMessage from '@/Components/Site/FlashMessage';
+import PrefetchLink from '@/Components/Site/PrefetchLink';
 import { SocialIcon } from '@/Components/Site/SocialIcons';
 import { whatsappLink } from '@/lib/format';
-import { Head, Link, usePage } from '@inertiajs/react';
+import { scrollBehavior } from '@/lib/motion';
+import { Transition } from '@headlessui/react';
+import { Head, usePage } from '@inertiajs/react';
 import { CalendarDays, LucideProvider, MapPin, Menu, Phone, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -38,11 +41,14 @@ function NavLink({ item, onNavigate, ...props }) {
 
         e.preventDefault();
         window.history.replaceState(window.history.state, '', href);
-        // Once the mobile menu has closed, so the section is where it will stay.
-        setTimeout(() => (target ? target.scrollIntoView({ behavior: 'smooth' }) : window.scrollTo({ top: 0, behavior: 'smooth' })));
+        // After React has handled the click (and started closing the mobile menu).
+        setTimeout(() => {
+            const behavior = scrollBehavior();
+            target ? target.scrollIntoView({ behavior }) : window.scrollTo({ top: 0, behavior });
+        });
     };
 
-    return <Link href={href} onClick={scrollOnHome} {...props} />;
+    return <PrefetchLink href={href} onClick={scrollOnHome} {...props} />;
 }
 
 /** On the home page, the menu section scrolled into view (null over the hero). */
@@ -100,9 +106,9 @@ function Navbar() {
     return (
         <header className="sticky top-0 z-50 bg-white/95 shadow-sm backdrop-blur">
             <nav className="mx-auto flex h-[72px] max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-                <Link href={route('home')} aria-label="Nagala Eco Cottage home" className="shrink-0">
+                <PrefetchLink href={route('home')} aria-label="Nagala Eco Cottage home" className="shrink-0">
                     <ApplicationLogo className="h-12 sm:h-14" />
-                </Link>
+                </PrefetchLink>
 
                 <ul className="hidden items-center gap-8 lg:flex">
                     {navItems.map((item) => {
@@ -116,7 +122,13 @@ function Navbar() {
                                     }`}
                                 >
                                     {item.label}
-                                    {active && <span className="absolute inset-x-0 -bottom-0.5 h-0.5 rounded bg-leaf-500" />}
+                                    {/* Grows in from the middle, and shrinks away as another section takes over */}
+                                    <span
+                                        aria-hidden
+                                        className={`absolute inset-x-0 -bottom-0.5 h-0.5 rounded bg-leaf-500 transition duration-300 ease-smooth ${
+                                            active ? 'scale-x-100 opacity-100' : 'scale-x-0 opacity-0'
+                                        }`}
+                                    />
                                 </NavLink>
                             </li>
                         );
@@ -124,9 +136,9 @@ function Navbar() {
                 </ul>
 
                 <div className="flex items-center gap-2">
-                    <Link href={route('book')} className="btn-primary hidden px-5 sm:inline-flex">
+                    <PrefetchLink href={route('book')} className="btn-primary hidden px-5 sm:inline-flex">
                         <CalendarDays className="h-4 w-4" /> Book Now
-                    </Link>
+                    </PrefetchLink>
                     <button
                         type="button"
                         onClick={() => setOpen((o) => !o)}
@@ -134,35 +146,48 @@ function Navbar() {
                         aria-label="Toggle menu"
                         aria-expanded={open}
                     >
-                        {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+                        {/* The two icons turn into each other */}
+                        <span className="relative block h-6 w-6">
+                            <Menu
+                                className={`absolute inset-0 h-6 w-6 transition duration-300 ease-smooth ${open ? 'rotate-90 scale-50 opacity-0' : ''}`}
+                            />
+                            <X
+                                className={`absolute inset-0 h-6 w-6 transition duration-300 ease-smooth ${open ? '' : '-rotate-90 scale-50 opacity-0'}`}
+                            />
+                        </span>
                     </button>
                 </div>
             </nav>
 
-            {open && (
-                <div className="border-t border-stone-100 bg-white lg:hidden">
-                    <ul className="space-y-1 px-4 py-3">
-                        {navItems.map((item) => (
-                            <li key={item.label}>
-                                <NavLink
-                                    item={item}
-                                    onNavigate={() => setOpen(false)}
-                                    className={`block rounded-md px-3 py-2.5 text-base font-medium ${
-                                        isActive(item) ? 'bg-forest-50 text-forest-800' : 'text-stone-700 hover:bg-stone-50'
-                                    }`}
-                                >
-                                    {item.label}
-                                </NavLink>
+            {/* Slides open and closed over the page (the grid row animates between no height and the
+                menu's own height). It overlays the page rather than pushing it down, so nothing below
+                reflows while it moves and a section link scrolls to where the section really is. */}
+            <Transition show={open}>
+                <div className="absolute inset-x-0 top-full grid grid-rows-[1fr] shadow-lg transition-[grid-template-rows,opacity] duration-300 ease-smooth data-[closed]:grid-rows-[0fr] data-[closed]:opacity-0 motion-reduce:transition-opacity lg:hidden">
+                    <div className="min-h-0 overflow-hidden">
+                        <ul className="space-y-1 border-t border-stone-100 bg-white px-4 py-3">
+                            {navItems.map((item) => (
+                                <li key={item.label}>
+                                    <NavLink
+                                        item={item}
+                                        onNavigate={() => setOpen(false)}
+                                        className={`block rounded-md px-3 py-2.5 text-base font-medium transition ${
+                                            isActive(item) ? 'bg-forest-50 text-forest-800' : 'text-stone-700 hover:bg-stone-50'
+                                        }`}
+                                    >
+                                        {item.label}
+                                    </NavLink>
+                                </li>
+                            ))}
+                            <li className="pt-2">
+                                <PrefetchLink href={route('book')} className="btn-primary w-full">
+                                    <CalendarDays className="h-4 w-4" /> Book Now
+                                </PrefetchLink>
                             </li>
-                        ))}
-                        <li className="pt-2">
-                            <Link href={route('book')} className="btn-primary w-full">
-                                <CalendarDays className="h-4 w-4" /> Book Now
-                            </Link>
-                        </li>
-                    </ul>
+                        </ul>
+                    </div>
                 </div>
-            )}
+            </Transition>
         </header>
     );
 }
@@ -180,9 +205,9 @@ function Footer() {
         <footer className="relative overflow-hidden bg-[#082316] text-cream-100">
             <FooterLeaves />
             <div className="relative mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-6 md:grid-cols-[auto_1fr_auto] md:items-center lg:px-8">
-                <Link href={route('home')} className="justify-self-center md:justify-self-start">
-                    <ApplicationLogo light stacked className="h-36 md:h-40" />
-                </Link>
+                <PrefetchLink href={route('home')} className="justify-self-center md:justify-self-start">
+                    <ApplicationLogo light stacked loading="lazy" className="h-36 md:h-40" />
+                </PrefetchLink>
 
                 <div className="flex flex-col items-center gap-5">
                     <ul className="flex flex-wrap justify-center gap-x-7 gap-y-2 text-sm">
@@ -225,7 +250,7 @@ function Footer() {
             </div>
             <div className="relative border-t border-white/10 py-4 text-center text-xs text-cream-200/70">
                 © {new Date().getFullYear()} {settings.site_name}. All rights reserved.
-                <span className="mt-1 block text-[10px] text-cream-200/50">
+                {/* <span className="mt-1 block text-[10px] text-cream-200/50">
                     Birdsong:{' '}
                     <a
                         href="https://commons.wikimedia.org/wiki/File:Dawn_chorus_at_Glencairnie_big_bungalow_Craigmore_DM.ogg"
@@ -245,7 +270,7 @@ function Footer() {
                         &ldquo;Nature sounds ambience in a Dordogne pond&rdquo; by Glaneur de sons
                     </a>
                     , CC BY 3.0, edited
-                </span>
+                </span> */}
             </div>
         </footer>
     );
@@ -271,7 +296,7 @@ export default function SiteLayout({ title, children }) {
                     target="_blank"
                     rel="noreferrer"
                     aria-label="Chat on WhatsApp"
-                    className="fixed bottom-5 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-xl transition hover:scale-110"
+                    className="fixed bottom-5 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-xl transition duration-300 ease-smooth hover:scale-110"
                 >
                     <SocialIcon name="whatsapp" className="h-7 w-7" />
                 </a>

@@ -1,3 +1,4 @@
+import { scrollBehavior } from '@/lib/motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useRef } from 'react';
 
@@ -13,9 +14,10 @@ export default function Carousel({ children, itemClassName = 'w-[85%] sm:w-[calc
         const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 4;
         const atStart = el.scrollLeft <= 4;
 
-        if (dir > 0 && atEnd) el.scrollTo({ left: 0, behavior: 'smooth' });
-        else if (dir < 0 && atStart) el.scrollTo({ left: el.scrollWidth, behavior: 'smooth' });
-        else el.scrollBy({ left: dir * step, behavior: 'smooth' });
+        const behavior = scrollBehavior();
+        if (dir > 0 && atEnd) el.scrollTo({ left: 0, behavior });
+        else if (dir < 0 && atStart) el.scrollTo({ left: el.scrollWidth, behavior });
+        else el.scrollBy({ left: dir * step, behavior });
     };
 
     const arrow =

@@ -47,6 +47,16 @@ class Package extends Model
 
     protected $appends = ['inclusion_list'];
 
+    /**
+     * Left out where packages are listed (cards, the booking form): the long text and bookkeeping
+     * fields, which made list pages heavier to download on a weak signal. Use with makeHidden();
+     * a package's own page still gets everything.
+     */
+    public const CARD_HIDDEN = [
+        'short_description', 'description', 'inclusions', 'cover_image',
+        'is_active', 'sort_order', 'created_at', 'updated_at',
+    ];
+
     protected function casts(): array
     {
         return [

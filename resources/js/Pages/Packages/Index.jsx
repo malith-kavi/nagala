@@ -1,7 +1,7 @@
 import { PackageCard } from '@/Components/Site/Cards';
 import PageHeader from '@/Components/Site/PageHeader';
+import PrefetchLink from '@/Components/Site/PrefetchLink';
 import SiteLayout from '@/Layouts/SiteLayout';
-import { Link } from '@inertiajs/react';
 import { Utensils } from 'lucide-react';
 
 export default function PackagesIndex({ packages }) {
@@ -20,9 +20,9 @@ export default function PackagesIndex({ packages }) {
                 </div>
                 {packages.length === 0 && <p className="text-center text-stone-500">New packages are coming soon.</p>}
                 <p className="mt-10 text-center">
-                    <Link href={route('dining')} className="inline-flex items-center gap-1.5 font-medium text-forest-700 hover:underline">
+                    <PrefetchLink href={route('dining')} className="inline-flex items-center gap-1.5 font-medium text-forest-700 hover:underline">
                         <Utensils className="h-4 w-4" /> See what&rsquo;s on the full board menu
-                    </Link>
+                    </PrefetchLink>
                 </p>
             </section>
         </SiteLayout>

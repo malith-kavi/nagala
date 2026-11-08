@@ -12,7 +12,7 @@ class PackageController extends Controller
     public function index(): Response
     {
         return Inertia::render('Packages/Index', [
-            'packages' => Package::active()->get(),
+            'packages' => Package::active()->get()->makeHidden(Package::CARD_HIDDEN),
         ]);
     }
 
@@ -22,8 +22,8 @@ class PackageController extends Controller
 
         return Inertia::render('Packages/Show', [
             'package' => $package,
-            'cottages' => Cottage::active()->get()->filter(fn (Cottage $c) => $package->fitsCottage($c))->values(),
-            'others' => Package::active()->whereKeyNot($package->id)->get(),
+            'cottages' => Cottage::active()->get()->makeHidden(Cottage::CARD_HIDDEN)->filter(fn (Cottage $c) => $package->fitsCottage($c))->values(),
+            'others' => Package::active()->whereKeyNot($package->id)->get()->makeHidden(Package::CARD_HIDDEN),
         ]);
     }
 }

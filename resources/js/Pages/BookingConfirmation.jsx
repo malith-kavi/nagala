@@ -1,6 +1,7 @@
+import PrefetchLink from '@/Components/Site/PrefetchLink';
 import SiteLayout from '@/Layouts/SiteLayout';
 import { formatDate, formatLKR, whatsappLink } from '@/lib/format';
-import { Link, usePage } from '@inertiajs/react';
+import { usePage } from '@inertiajs/react';
 import { CheckCircle2, Clock, XCircle } from 'lucide-react';
 
 const statusStyles = {
@@ -51,9 +52,9 @@ export default function BookingConfirmation({ booking }) {
                     <p className="mt-6 text-xs text-stone-500">Save this page or your reference number. A copy has been sent to {booking.email}.</p>
 
                     <div className="mt-6 flex flex-wrap justify-center gap-3">
-                        <Link href={route('home')} className="btn-outline">
+                        <PrefetchLink href={route('home')} className="btn-outline">
                             Back to home
-                        </Link>
+                        </PrefetchLink>
                         {settings.whatsapp && (
                             <a
                                 href={whatsappLink(settings.whatsapp, `Hi! About my booking ${booking.reference}`)}

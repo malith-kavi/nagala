@@ -24,6 +24,14 @@
     RewriteRule ^ index.php [L]
 </IfModule>
 
+# Older shared-hosting Apache setups may not know these types, and would serve the files as
+# downloads that browsers refuse to show or play.
+<IfModule mod_mime.c>
+    AddType image/avif .avif
+    AddType audio/mp4 .m4a
+    AddType font/woff2 .woff2
+</IfModule>
+
 # Let browsers keep images, styles and scripts, so return visits on a weak signal load almost nothing again.
 <IfModule mod_expires.c>
     ExpiresActive On
@@ -34,6 +42,7 @@
     ExpiresByType image/svg+xml "access plus 30 days"
     ExpiresByType image/x-icon "access plus 30 days"
     ExpiresByType audio/mpeg "access plus 30 days"
+    ExpiresByType audio/mp4 "access plus 30 days"
     ExpiresByType font/woff2 "access plus 1 year"
     ExpiresByType text/css "access plus 1 year"
     ExpiresByType application/javascript "access plus 1 year"
@@ -43,7 +52,7 @@
 <IfModule mod_headers.c>
     # Built files (app-AbC123xy.js) and uploaded photos (40 random characters) get a new name
     # whenever they change, so browsers can keep them for good.
-    <FilesMatch "(-[A-Za-z0-9_-]{8}\.(js|css)|^[A-Za-z0-9]{40}(-[0-9]+)?\.(webp|jpe?g|png))$">
+    <FilesMatch "(-[A-Za-z0-9_-]{8}\.(js|css|woff2)|^[A-Za-z0-9]{40}(-[0-9]+)?\.(webp|jpe?g|png))$">
         Header set Cache-Control "public, max-age=31536000, immutable"
     </FilesMatch>
 </IfModule>

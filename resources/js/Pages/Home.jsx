@@ -5,11 +5,13 @@ import { CottageLeaves } from '@/Components/Site/DesignFoliage';
 import DriftingSky from '@/Components/Site/DriftingSky';
 import TwinklingStars from '@/Components/Site/TwinklingStars';
 import ImageWithFallback from '@/Components/Site/ImageWithFallback';
+import PrefetchLink from '@/Components/Site/PrefetchLink';
 import Reveal, { revealDelay } from '@/Components/Site/Reveal';
 import SectionHeading from '@/Components/Site/SectionHeading';
 import VideoModal from '@/Components/Site/VideoModal';
 import SiteLayout from '@/Layouts/SiteLayout';
-import { Link, usePage } from '@inertiajs/react';
+import { copies, heroSizes } from '@/lib/bundledImages.json';
+import { usePage } from '@inertiajs/react';
 import { ArrowRight, CalendarDays, Play } from 'lucide-react';
 import { useState } from 'react';
 
@@ -21,16 +23,12 @@ const menuSection = `scroll-mt-[72px] ${screenSection}`;
 
 // The bundled hero photos are 1670px wide, but a phone shows only a narrow slice of the photo
 // stretched to fill a tall screen, so it looked soft. Each one has WebP copies: the same photo,
-// and a 2x one made with an AI upscaler. An uploaded hero has none and shows as uploaded.
-const HERO_WEBP = {
-    '/images/hero_l.jpg': '/images/hero_l.webp 1670w, /images/hero_l-2x.webp 3340w',
-    '/images/hero_d.jpg': '/images/hero_d.webp 1670w, /images/hero_d-2x.webp 3340w',
-};
-
-// How wide the hero photo is drawn: the full screen width, or on screens narrower than the photo,
-// its height (one screen minus the navbar) times the photo's 1670/942 aspect ratio.
-const HERO_SIZES = '(max-aspect-ratio: 1670/942) calc((100vh - 72px) * 1.773), 100vw';
-
+// a 2x one made with an AI upscaler, and a 2500px one between them. The sunset one also has much
+// smaller AVIF copies (the night one doesn't: AVIF loses its faintest stars). An uploaded hero has
+// none and shows as uploaded. The copies and heroSizes (how wide the photo is drawn: the screen
+// width, or on screens narrower than the photo, one screen's height minus the navbar times its
+// 1670/942 aspect ratio) live in lib/bundledImages.json, which app.blade.php also reads to start
+// downloading the same copy with the page.
 export default function Home({ cottages, places, placesCount, packages, packagesCount }) {
     const { settings } = usePage().props;
     const [video, setVideo] = useState(false);
@@ -42,12 +40,14 @@ export default function Home({ cottages, places, placesCount, packages, packages
                 <ImageWithFallback
                     src={settings.hero_image_url}
                     darkSrc={settings.hero_image_dark_url}
-                    webpSrcSet={HERO_WEBP[settings.hero_image_url]}
-                    darkWebpSrcSet={HERO_WEBP[settings.hero_image_dark_url]}
-                    sizes={HERO_SIZES}
+                    avifSrcSet={copies[settings.hero_image_url]?.avif}
+                    webpSrcSet={copies[settings.hero_image_url]?.webp}
+                    darkWebpSrcSet={copies[settings.hero_image_dark_url]?.webp}
+                    sizes={heroSizes}
                     alt="Eco cottages beneath Nagala rock"
                     className="absolute inset-0 -z-20 h-full w-full"
                     loading="eager"
+                    fetchPriority="high"
                 />
                 <DriftingSky
                     src={settings.hero_image_url}
@@ -59,17 +59,18 @@ export default function Home({ cottages, places, placesCount, packages, packages
                 <div className="absolute inset-x-0 bottom-0 -z-10 h-40 bg-gradient-to-t from-forest-950/45 to-transparent" />
 
                 <div className="mx-auto w-full max-w-7xl px-4 py-24 sm:px-6 lg:px-8">
-                    <div className="max-w-2xl animate-fade-up [text-shadow:0_2px_18px_rgba(4,20,12,0.55)]">
-                        <p className="text-xs font-semibold uppercase tracking-[0.3em] text-cream-100">Nagala Eco Cottage</p>
-                        <h1 className="mt-4 font-display text-5xl font-semibold leading-[1.05] text-white sm:text-6xl lg:text-7xl">
+                    {/* The name, headline and button rise in one after another */}
+                    <div className="max-w-2xl [text-shadow:0_2px_18px_rgba(4,20,12,0.55)]">
+                        <p className="animate-fade-up text-xs font-semibold uppercase tracking-[0.3em] text-cream-100">Nagala Eco Cottage</p>
+                        <h1 className="mt-4 animate-fade-up font-display text-5xl font-semibold leading-[1.05] text-white [animation-delay:120ms] sm:text-6xl lg:text-7xl">
                             A Peaceful Getaway <br className="hidden sm:block" />
                             in <span className="text-gold-400">Nature&rsquo;s Embrace</span>
                         </h1>
 
-                        <div className="mt-8 flex flex-wrap gap-4">
-                            <Link href={route('book')} className="btn-leaf">
+                        <div className="mt-8 flex animate-fade-up flex-wrap gap-4 [animation-delay:240ms]">
+                            <PrefetchLink href={route('book')} className="btn-leaf">
                                 <CalendarDays className="h-4 w-4" /> Book Your Stay <ArrowRight className="h-4 w-4" />
-                            </Link>
+                            </PrefetchLink>
                             {/* <button type="button" onClick={() => setVideo(true)} className="btn-outline-light">
                                 <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white text-forest-900">
                                     <Play className="ml-0.5 h-3 w-3 fill-current" />
@@ -112,10 +113,21 @@ export default function Home({ cottages, places, placesCount, packages, packages
 
             {/* Experience Nagala + Packages share one background photo that stays pinned while their content scrolls over it */}
             <div className="relative isolate bg-[#0a1e12]">
-                <div
-                    aria-hidden
-                    className="sticky top-[72px] -z-10 mb-[calc(72px-100svh)] h-[calc(100svh-72px)] bg-[url('/images/design/nearby-bg.webp')] bg-cover bg-center"
-                >
+                <div aria-hidden className="sticky top-[72px] -z-10 mb-[calc(72px-100svh)] h-[calc(100svh-72px)] overflow-hidden">
+                    {/* A lazy, low-priority photo rather than a CSS background, which would download with the page at
+                        the same priority as the hero. On wide screens it is close enough to load early anyway, but
+                        after the hero. (Lowercase fetchpriority: React 18 doesn't know the prop yet.) */}
+                    <picture>
+                        <source type="image/avif" srcSet="/images/design/nearby-bg.avif" />
+                        <img
+                            src="/images/design/nearby-bg.webp"
+                            alt=""
+                            loading="lazy"
+                            fetchpriority="low"
+                            decoding="async"
+                            className="absolute inset-0 h-full w-full object-cover"
+                        />
+                    </picture>
                     <div className="absolute inset-0 bg-gradient-to-b from-[#0a1e12]/55 via-[#0a1e12]/35 to-[#0a1e12]/70" />
                 </div>
 
@@ -139,9 +151,9 @@ export default function Home({ cottages, places, placesCount, packages, packages
                         </div>
                         {placesCount > places.length && (
                             <div className="reveal-item mt-8 text-center" style={revealDelay(150 + places.length * 100)}>
-                                <Link href={route('places.index')} className="btn-outline-light">
+                                <PrefetchLink href={route('places.index')} className="btn-outline-light">
                                     View all {placesCount} places <ArrowRight className="h-4 w-4" />
-                                </Link>
+                                </PrefetchLink>
                             </div>
                         )}
                     </Reveal>
@@ -167,9 +179,9 @@ export default function Home({ cottages, places, placesCount, packages, packages
                         </div>
                         {packagesCount > packages.length && (
                             <div className="reveal-item mt-8 text-center" style={revealDelay(150 + packages.length * 100)}>
-                                <Link href={route('packages.index')} className="btn-outline-light">
+                                <PrefetchLink href={route('packages.index')} className="btn-outline-light">
                                     View all {packagesCount} packages <ArrowRight className="h-4 w-4" />
-                                </Link>
+                                </PrefetchLink>
                             </div>
                         )}
                     </Reveal>

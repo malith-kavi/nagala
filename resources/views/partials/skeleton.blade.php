@@ -168,11 +168,12 @@
             return bg && bg !== 'transparent' && bg !== 'rgba(0, 0, 0, 0)';
         }
 
-        // The fonts stylesheet sets data-fonts when it arrives; then load the two fonts the page uses.
+        // The site's stylesheet declares the fonts; once it has arrived, load the two the page uses
+        // (app.blade.php has usually started downloading them already).
         function fontsLoaded() {
-            if (!fontsRequested && root.dataset.fonts && document.fonts) {
+            if (!fontsRequested && styled() && document.fonts) {
                 fontsRequested = true;
-                Promise.all([document.fonts.load('600 1em Fredoka'), document.fonts.load('1em Nunito')]).then(
+                Promise.all([document.fonts.load('600 1em "Fredoka Variable"'), document.fonts.load('1em "Nunito Variable"')]).then(
                     function () { fontsReady = true; },
                     function () { fontsReady = true; }
                 );

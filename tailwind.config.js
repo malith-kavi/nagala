@@ -13,8 +13,9 @@ export default {
     theme: {
         extend: {
             fontFamily: {
-                sans: ['Nunito', ...defaultTheme.fontFamily.sans],
-                display: ['Fredoka', 'Nunito', ...defaultTheme.fontFamily.sans],
+                // Self-hosted variable fonts (@fontsource-variable, imported in app.css).
+                sans: ['"Nunito Variable"', ...defaultTheme.fontFamily.sans],
+                display: ['"Fredoka Variable"', '"Nunito Variable"', ...defaultTheme.fontFamily.sans],
             },
             colors: {
                 forest: {
@@ -47,10 +48,22 @@ export default {
                     200: '#f2ecdc',
                 },
             },
+            // Hovers and colour changes ease a touch slower than Tailwind's 150ms default.
+            transitionDuration: {
+                DEFAULT: '200ms',
+            },
+            // A long, soft ease-out for anything that moves: fast to respond, gentle to settle.
+            transitionTimingFunction: {
+                smooth: 'cubic-bezier(0.22, 1, 0.36, 1)',
+            },
             keyframes: {
                 'fade-up': {
                     '0%': { opacity: 0, transform: 'translateY(16px)' },
                     '100%': { opacity: 1, transform: 'translateY(0)' },
+                },
+                'fade-in': {
+                    '0%': { opacity: 0 },
+                    '100%': { opacity: 1 },
                 },
                 birdsong: {
                     '0%, 100%': { transform: 'scaleY(0.35)' },
@@ -68,7 +81,8 @@ export default {
                 },
             },
             animation: {
-                'fade-up': 'fade-up 0.8s ease-out both',
+                'fade-up': 'fade-up 0.9s cubic-bezier(0.22, 1, 0.36, 1) both',
+                'fade-in': 'fade-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both',
                 birdsong: 'birdsong 0.9s ease-in-out infinite',
                 'cloud-flow': 'cloud-flow 120s linear infinite',
                 twinkle: 'twinkle 4s ease-in-out infinite',

@@ -212,18 +212,19 @@ export default function Book({ cottages, packages, preselect }) {
                                 </Field>
                             </div>
 
+                            {/* Each status is keyed, so it fades in rather than snapping over the last one */}
                             <div className="mt-5 min-h-[28px] text-sm" aria-live="polite">
                                 {availability.loading ? (
-                                    <span className="flex items-center gap-2 text-stone-500">
+                                    <span key="checking" className="flex animate-fade-in items-center gap-2 text-stone-500">
                                         <Loader2 className="h-4 w-4 animate-spin" /> Checking availability…
                                     </span>
                                 ) : availability.available === true ? (
-                                    <span className="flex items-center gap-2 font-medium text-leaf-600">
+                                    <span key="available" className="flex animate-fade-in items-center gap-2 font-medium text-leaf-600">
                                         <CheckCircle2 className="h-4 w-4" /> Available for your dates
                                         {availability.units_left === 1 && ' — last one left!'}
                                     </span>
                                 ) : unavailable ? (
-                                    <span className="flex items-center gap-2 font-medium text-red-600">
+                                    <span key="booked" className="flex animate-fade-in items-center gap-2 font-medium text-red-600">
                                         <AlertTriangle className="h-4 w-4" /> Fully booked for these dates. Please try other dates or another cottage.
                                     </span>
                                 ) : null}

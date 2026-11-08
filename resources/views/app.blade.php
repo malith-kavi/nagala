@@ -26,14 +26,14 @@
 
         <title inertia>{{ config('app.name', 'Laravel') }}</title>
 
-        <!-- Fonts -->
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        @if ($skeleton)
-            <link rel="preload" as="style" href="https://fonts.bunny.net/css?family=fredoka:500,600,700|nunito:400,500,600,700,800&display=swap">
-            <link href="https://fonts.bunny.net/css?family=fredoka:500,600,700|nunito:400,500,600,700,800&display=swap" rel="stylesheet" media="print" onload="this.media='all';document.documentElement.dataset.fonts=1" />
-        @else
-            <link href="https://fonts.bunny.net/css?family=fredoka:500,600,700|nunito:400,500,600,700,800&display=swap" rel="stylesheet" />
-        @endif
+        {{-- Start the downloads the first screen waits on right away, rather than once the scripts have
+             run: the first photo (see App\Support\FirstPhotoPreload) and the two fonts (self-hosted,
+             declared in app.css). --}}
+        @foreach (\App\Support\FirstPhotoPreload::for($page) as $preload)
+            <link rel="preload" as="image" fetchpriority="high" {{ new \Illuminate\View\ComponentAttributeBag($preload) }}>
+        @endforeach
+        <link rel="preload" as="font" type="font/woff2" href="{{ \Illuminate\Support\Facades\Vite::asset('node_modules/@fontsource-variable/nunito/files/nunito-latin-wght-normal.woff2') }}" crossorigin>
+        <link rel="preload" as="font" type="font/woff2" href="{{ \Illuminate\Support\Facades\Vite::asset('node_modules/@fontsource-variable/fredoka/files/fredoka-latin-wght-normal.woff2') }}" crossorigin>
 
         <!-- Scripts -->
         @routes

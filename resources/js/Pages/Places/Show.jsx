@@ -1,11 +1,11 @@
 import { Amenity } from '@/Components/Site/Amenity';
 import { PlaceCard } from '@/Components/Site/Cards';
 import PhotoGallery from '@/Components/Site/PhotoGallery';
+import PrefetchLink from '@/Components/Site/PrefetchLink';
 import Prose from '@/Components/Site/Prose';
 import SectionHeading from '@/Components/Site/SectionHeading';
 import SiteLayout from '@/Layouts/SiteLayout';
 import { cardSizes } from '@/lib/imageSrcSet';
-import { Link } from '@inertiajs/react';
 import { ArrowLeft, CalendarDays, Car, ExternalLink, MapPin } from 'lucide-react';
 
 export default function PlaceShow({ place, others }) {
@@ -14,9 +14,9 @@ export default function PlaceShow({ place, others }) {
     return (
         <SiteLayout title={place.name}>
             <section className="mx-auto max-w-5xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
-                <Link href={route('places.index')} className="inline-flex items-center gap-1 text-sm text-forest-700 hover:underline">
+                <PrefetchLink href={route('places.index')} className="inline-flex items-center gap-1 text-sm text-forest-700 hover:underline">
                     <ArrowLeft className="h-4 w-4" /> All nearby places
-                </Link>
+                </PrefetchLink>
                 <PhotoGallery photos={photos} name={place.name} className="mt-4" />
                 {place.cover_image_url && place.cover_credit && <p className="mt-2 text-right text-xs text-stone-500">{place.cover_credit}</p>}
 
@@ -38,9 +38,9 @@ export default function PlaceShow({ place, others }) {
                 <Prose text={place.description || place.short_description} className="mt-6 text-lg" />
 
                 <div className="mt-8 flex flex-wrap gap-3">
-                    <Link href={route('book')} className="btn-leaf">
+                    <PrefetchLink href={route('book')} className="btn-leaf">
                         <CalendarDays className="h-4 w-4" /> Book your stay
-                    </Link>
+                    </PrefetchLink>
                     {place.map_url && (
                         <a href={place.map_url} target="_blank" rel="noreferrer" className="btn-outline">
                             <ExternalLink className="h-4 w-4" /> Open in Google Maps

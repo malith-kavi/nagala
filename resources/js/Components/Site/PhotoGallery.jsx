@@ -38,8 +38,12 @@ export default function PhotoGallery({ photos, name, className = '' }) {
                         {thumbs.map((p, i) => {
                             const more = i === thumbs.length - 1 ? photos.length - 1 - thumbs.length : 0;
                             return (
-                                <button key={p.url} type="button" onClick={() => setLightbox(i + 1)} className="relative overflow-hidden rounded-lg">
-                                    <ImageWithFallback src={p.url} sizes="240px" className="absolute inset-0 h-full w-full transition hover:scale-105" />
+                                <button key={p.url} type="button" onClick={() => setLightbox(i + 1)} className="group relative isolate overflow-hidden rounded-lg">
+                                    <ImageWithFallback
+                                        src={p.url}
+                                        sizes="240px"
+                                        className="absolute inset-0 h-full w-full transition-transform duration-700 ease-smooth group-hover:scale-105"
+                                    />
                                     {more > 0 && (
                                         <span className="absolute inset-0 flex items-center justify-center bg-forest-950/55 text-sm font-semibold text-white">
                                             +{more}
