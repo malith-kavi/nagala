@@ -1,4 +1,5 @@
-import { IMAGE_ACCEPT, prepareImages } from '@/lib/prepareImage';
+import { srcSetFor } from '@/lib/imageSrcSet';
+import { IMAGE_ACCEPT, usePrepareImages } from '@/lib/prepareImage';
 import { ChevronLeft, ChevronRight, ImagePlus, Trash2, Undo2 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -15,6 +16,7 @@ const move = (list, from, to) => {
  * or freshly picked (`{ key, file, url }`). Reorder by dragging or with the arrows.
  */
 export default function PhotoOrderInput({ label, photos, setPhotos, error }) {
+    const prepareImages = usePrepareImages();
     const [preparing, setPreparing] = useState(false);
     const [dragging, setDragging] = useState(null);
     const [over, setOver] = useState(null);
@@ -72,7 +74,12 @@ export default function PhotoOrderInput({ label, photos, setPhotos, error }) {
                         }`}
                     >
                         <img
+                            // Saved photos load their small copies: the full-size ones are up to 1 MB each, and a
+                            // cottage with dozens of photos made this page download tens of MB on a weak signal.
                             src={photo.url}
+                            srcSet={srcSetFor(photo.url)}
+                            sizes="(min-width: 1024px) 96px, 33vw"
+                            loading="lazy"
                             alt=""
                             draggable={false}
                             className={`aspect-square w-full rounded object-cover ${photo.removed ? 'opacity-30' : ''} ${photo.file ? 'ring-2 ring-leaf-500' : ''}`}

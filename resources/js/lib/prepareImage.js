@@ -2,7 +2,7 @@
 // browsers can't show and the server rejects). So photos are resized and re-encoded here before
 // uploading, which also keeps uploads quick on a weak signal: WebP where the browser can make it
 // (JPEG otherwise), at the highest quality that fits. The server then makes the smaller copies.
-import { useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useRef, useSyncExternalStore } from 'react';
 
 export const MAX_BYTES = 1024 * 1024;
 export const MAX_SIDE = 2048;
@@ -129,12 +129,31 @@ export const prepareImage = (file, options) => tracked(() => prepare(file, optio
 /**
  * Photos are prepared one at a time: a phone photo takes about 50 MB of memory while it's resized,
  * so preparing a dozen at once could freeze the page or make a phone reload it.
+ * Once `signal` is aborted, the photos not yet prepared are skipped and nothing is returned.
  */
-export const prepareImages = (files, options) =>
+export const prepareImages = (files, { signal, ...options } = {}) =>
     tracked(async () => {
         const prepared = [];
-        for (const file of files) prepared.push(await prepare(file, options));
-        return prepared;
+        for (const file of files) {
+            if (signal?.aborted) break;
+            prepared.push(await prepare(file, options));
+        }
+        return signal?.aborted ? [] : prepared;
     });
+
+/**
+ * prepareImages for one admin page. When the admin leaves the page (Cancel or any other link)
+ * the photos not yet prepared are skipped, so the work doesn't slow down the next page or hold
+ * up its Save button.
+ */
+export function usePrepareImages() {
+    const controller = useRef(null);
+    useEffect(() => {
+        controller.current = new AbortController();
+        return () => controller.current.abort();
+    }, []);
+
+    return useCallback((files, options) => prepareImages(files, { ...options, signal: controller.current?.signal }), []);
+}
 
 export const IMAGE_ACCEPT = 'image/*,.heic,.heif';

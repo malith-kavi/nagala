@@ -79,8 +79,11 @@ class BookingController extends Controller
         $data = $request->validate([
             'cottage_id' => ['required', 'exists:cottages,id'],
             'package_id' => ['nullable', 'exists:packages,id'],
-            'check_in' => ['nullable', 'date'],
-            'check_out' => ['nullable', 'date', 'after:check_in'],
+            // The dates a booking can have (StoreBookingRequest), with a day's leeway for visitors whose
+            // date is behind the server's. Unbounded, a single request for a range of decades kept
+            // the server busy for minutes.
+            'check_in' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:'.now()->subDay()->toDateString()],
+            'check_out' => ['nullable', 'date_format:Y-m-d', 'after:check_in', 'before:'.now()->addYear()->addDay()->toDateString()],
         ]);
 
         $cottage = Cottage::findOrFail($data['cottage_id']);

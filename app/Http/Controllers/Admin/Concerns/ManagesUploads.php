@@ -8,12 +8,57 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
+use Throwable;
 
 trait ManagesUploads
 {
+    /** Photos stored during savingPhotos(), deleted again if the save fails. */
+    private array $storedPhotos = [];
+
+    /** Photos replaced or removed during savingPhotos(), deleted once it has worked; null outside it. */
+    private ?array $replacedPhotos = null;
+
+    /**
+     * Run a save that adds, replaces or removes photos, all or nothing. Replaced and removed photos
+     * are only deleted once everything has saved. If anything fails, such as one unreadable photo
+     * among several, the database is left as it was and the photos this save had already stored are
+     * deleted again, so the old photos stay working and no unused files are left behind.
+     */
+    protected function savingPhotos(callable $save): mixed
+    {
+        $this->storedPhotos = [];
+        $this->replacedPhotos = [];
+
+        try {
+            $result = DB::transaction($save);
+        } catch (Throwable $e) {
+            array_walk($this->storedPhotos, fn ($path) => $this->deleteStored($path));
+            throw $e;
+        } finally {
+            $replaced = $this->replacedPhotos;
+            $this->storedPhotos = [];
+            $this->replacedPhotos = null;
+        }
+
+        array_walk($replaced, fn ($path) => $this->deleteStored($path));
+
+        return $result;
+    }
+
+    /** Delete a photo that is being replaced or removed: at the end of savingPhotos(), or now outside it. */
+    protected function discardPhoto(?string $path): void
+    {
+        if ($this->replacedPhotos === null) {
+            $this->deleteStored($path);
+        } elseif ($path) {
+            $this->replacedPhotos[] = $path;
+        }
+    }
+
     /**
      * Validation rules for one uploaded photo. The admin's browser compresses photos to fit
      * the 1 MB limit before uploading (resources/js/lib/prepareImage.js).
@@ -42,7 +87,7 @@ trait ManagesUploads
     protected function storeImage(UploadedFile $file, string $directory, string $field, int $maxSide = ImageOptimizer::MAX_SIDE): string
     {
         try {
-            return app(ImageOptimizer::class)->store($file, $directory, $maxSide);
+            return $this->storedPhotos[] = app(ImageOptimizer::class)->store($file, $directory, $maxSide);
         } catch (InvalidArgumentException $e) {
             throw ValidationException::withMessages([$field => $e->getMessage()]);
         }
@@ -53,12 +98,11 @@ trait ManagesUploads
     {
         $file = $request->file($field);
         if ($file instanceof UploadedFile) {
-            // Stored before the old photo is deleted, so a photo that can't be read leaves the old one in place.
             $path = $this->storeImage($file, $directory, $field);
-            $this->deleteStored($model->{$field});
+            $this->discardPhoto($model->{$field});
             $model->{$field} = $path;
         } elseif ($request->boolean('remove_'.$field) && $model->{$field}) {
-            $this->deleteStored($model->{$field});
+            $this->discardPhoto($model->{$field});
             $model->{$field} = null;
         }
     }
@@ -81,7 +125,7 @@ trait ManagesUploads
         $uploaded = collect($request->file('new_images', []))->map(fn ($file) => $this->storeImage($file, $directory, 'new_images'))->values();
         $remove = $request->input('remove_images', []);
         $kept = collect($model->{$field} ?? []);
-        $kept->filter(fn ($p) => in_array($p, $remove, true))->each(fn ($p) => $this->deleteStored($p));
+        $kept->filter(fn ($p) => in_array($p, $remove, true))->each(fn ($p) => $this->discardPhoto($p));
         $kept = $kept->reject(fn ($p) => in_array($p, $remove, true))->values();
         $model->{$field} = $this->orderImages($kept, $uploaded, $request->input('image_order', []))->all();
     }

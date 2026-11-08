@@ -49,7 +49,10 @@ export default function Gallery({ images, categories }) {
                                     src={img.url}
                                     alt={img.caption || ''}
                                     sizes="(min-width: 1024px) 25vw, (min-width: 768px) 33vw, 50vw"
-                                    className="w-full transition-transform duration-700 ease-smooth group-hover:scale-105"
+                                    // Photos keep their own shape here, so until one loads it has no height, and every
+                                    // photo then counted as on screen: phones downloaded the whole gallery at once.
+                                    // A placeholder shape while loading keeps loading="lazy" working.
+                                    className="w-full transition-transform duration-700 ease-smooth group-hover:scale-105 [&.img-loading]:aspect-[4/3]"
                                 />
                                 {img.caption && (
                                     <span className="absolute inset-x-0 bottom-0 translate-y-1 bg-gradient-to-t from-black/70 to-transparent p-3 text-left text-sm text-white opacity-0 transition duration-300 ease-smooth group-hover:translate-y-0 group-hover:opacity-100">

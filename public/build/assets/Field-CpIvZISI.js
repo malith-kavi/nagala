@@ -1,0 +1,1 @@
+import{j as s}from"./app-Csbr9JYP.js";function n({label:t,error:e,children:l,className:c="",hint:a}){return s.jsxs("label",{className:`block ${c}`,children:[t&&s.jsx("span",{className:"label",children:t}),l,a&&!e&&s.jsx("span",{className:"mt-1 block text-xs text-stone-500",children:a}),e&&s.jsx("span",{className:"mt-1 block text-sm text-red-600",children:e})]})}export{n as F};

@@ -19,8 +19,10 @@ class StoreBookingRequest extends FormRequest
         return [
             'cottage_id' => ['required', 'exists:cottages,id'],
             'package_id' => ['nullable', 'exists:packages,id'],
-            'check_in' => ['required', 'date', 'after_or_equal:today'],
-            'check_out' => ['required', 'date', 'after:check_in', 'before:'.now()->addYear()->addDay()->toDateString()],
+            // Y-m-d only: other formats (such as "8 December 2026") compared wrongly with the stored dates,
+            // so the fully booked check missed them.
+            'check_in' => ['required', 'date_format:Y-m-d', 'after_or_equal:today'],
+            'check_out' => ['required', 'date_format:Y-m-d', 'after:check_in', 'before:'.now()->addYear()->addDay()->toDateString()],
             'guests' => ['required', 'integer', 'min:1', 'max:20'],
             'name' => ['required', 'string', 'max:120'],
             'email' => ['required', 'email', 'max:190'],

@@ -82,14 +82,16 @@ class PackageController extends Controller
             'cover_image' => ['nullable', ...$this->imageRule()],
         ], $this->imageMessages());
 
-        $package->fill([
-            ...collect($data)->except(['cover_image', 'slug', 'inclusions'])->all(),
-            'slug' => $this->uniqueSlug(Package::class, ($data['slug'] ?? null) ?: $data['name'], $package->id),
-            'inclusions' => Package::orderInclusions($data['inclusions'] ?? []),
-            'sort_order' => $data['sort_order'] ?? 0,
-        ]);
+        $this->savingPhotos(function () use ($request, $package, $data) {
+            $package->fill([
+                ...collect($data)->except(['cover_image', 'slug', 'inclusions'])->all(),
+                'slug' => $this->uniqueSlug(Package::class, ($data['slug'] ?? null) ?: $data['name'], $package->id),
+                'inclusions' => Package::orderInclusions($data['inclusions'] ?? []),
+                'sort_order' => $data['sort_order'] ?? 0,
+            ]);
 
-        $this->syncCoverImage($request, $package, 'packages');
-        $package->save();
+            $this->syncCoverImage($request, $package, 'packages');
+            $package->save();
+        });
     }
 }

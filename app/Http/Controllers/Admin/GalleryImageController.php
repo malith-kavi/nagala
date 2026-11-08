@@ -32,13 +32,16 @@ class GalleryImageController extends Controller
             'caption' => ['nullable', 'string', 'max:190'],
         ], $this->imageMessages());
 
-        foreach ($request->file('images') as $file) {
-            GalleryImage::create([
-                'path' => $this->storeImage($file, 'gallery', 'images'),
-                'category' => $data['category'],
-                'caption' => $data['caption'] ?? null,
-            ]);
-        }
+        // All or nothing: after an error, uploading the same photos again doesn't add duplicates.
+        $this->savingPhotos(function () use ($request, $data) {
+            foreach ($request->file('images') as $file) {
+                GalleryImage::create([
+                    'path' => $this->storeImage($file, 'gallery', 'images'),
+                    'category' => $data['category'],
+                    'caption' => $data['caption'] ?? null,
+                ]);
+            }
+        });
 
         return back()->with('success', count($data['images']).' image(s) uploaded.');
     }

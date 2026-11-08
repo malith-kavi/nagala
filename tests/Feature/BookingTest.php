@@ -150,6 +150,52 @@ class BookingTest extends TestCase
         $this->assertSame(0, Booking::count());
     }
 
+    public function test_dates_in_another_format_cannot_slip_past_the_fully_booked_check(): void
+    {
+        Mail::fake();
+        $cottage = Cottage::factory()->create(['units' => 1]);
+        $this->post(route('book.store'), $this->payload($cottage))->assertSessionHasNoErrors();
+
+        // "8 December 2026" compared wrongly with the stored dates, so the cottage looked free.
+        $this->post(route('book.store'), $this->payload($cottage, [
+            'check_in' => now()->addDays(10)->format('j F Y'),
+            'check_out' => now()->addDays(11)->format('j F Y'),
+        ]))->assertSessionHasErrors(['check_in', 'check_out']);
+
+        $this->assertSame(1, Booking::count());
+    }
+
+    public function test_availability_only_answers_for_dates_that_can_be_booked(): void
+    {
+        $cottage = Cottage::factory()->create();
+        $check = fn (string $in, string $out) => $this->getJson(route('availability', ['cottage_id' => $cottage->id, 'check_in' => $in, 'check_out' => $out]));
+
+        // A range of decades kept the server busy for minutes with a few years of bookings.
+        $check(now()->addDay()->toDateString(), now()->addYears(20)->toDateString())->assertJsonValidationErrors('check_out');
+        $check(now()->subYears(5)->toDateString(), now()->addDay()->toDateString())->assertJsonValidationErrors('check_in');
+        $check(now()->addDay()->format('j F Y'), now()->addDays(3)->format('j F Y'))->assertJsonValidationErrors(['check_in', 'check_out']);
+
+        $check(now()->addDay()->toDateString(), now()->addYear()->toDateString())->assertOk()->assertJson(['available' => true]);
+    }
+
+    public function test_units_left_counts_the_busiest_night(): void
+    {
+        Mail::fake();
+        $cottage = Cottage::factory()->create(['units' => 3]);
+        $day = fn (int $n) => now()->addDays($n)->toDateString();
+
+        // Nights 10–11 and 12–13 back to back (one unit), plus 11–13 overlapping both (a second unit).
+        foreach ([[10, 12], [12, 14], [11, 14]] as [$in, $out]) {
+            $this->post(route('book.store'), $this->payload($cottage, ['check_in' => $day($in), 'check_out' => $day($out)]))->assertSessionHasNoErrors();
+        }
+
+        $left = fn (int $in, int $out) => $this->getJson(route('availability', ['cottage_id' => $cottage->id, 'check_in' => $day($in), 'check_out' => $day($out)]))->json('units_left');
+        $this->assertSame(1, $left(9, 15));
+        $this->assertSame(2, $left(10, 11));
+        $this->assertSame(3, $left(14, 16));
+        $this->assertSame(3, $left(5, 10));
+    }
+
     public function test_availability_endpoint_reports_status_and_price(): void
     {
         Mail::fake();

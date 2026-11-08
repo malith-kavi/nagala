@@ -87,18 +87,20 @@ class CottageController extends Controller
             ...$this->imageListRules(),
         ], $this->imageMessages());
 
-        $cottage->fill([
-            ...collect($data)->except(['cover_image', 'new_images', 'remove_images', 'image_order', 'slug', 'features'])->all(),
-            'slug' => $this->uniqueSlug(Cottage::class, ($data['slug'] ?? null) ?: $data['name'], $cottage->id),
-            'features' => Cottage::orderFeatures($data['features'] ?? []),
-            'sort_order' => $data['sort_order'] ?? 0,
-        ]);
+        $this->savingPhotos(function () use ($request, $cottage, $data, $before) {
+            $cottage->fill([
+                ...collect($data)->except(['cover_image', 'new_images', 'remove_images', 'image_order', 'slug', 'features'])->all(),
+                'slug' => $this->uniqueSlug(Cottage::class, ($data['slug'] ?? null) ?: $data['name'], $cottage->id),
+                'features' => Cottage::orderFeatures($data['features'] ?? []),
+                'sort_order' => $data['sort_order'] ?? 0,
+            ]);
 
-        $this->syncCoverImage($request, $cottage, 'cottages');
-        $this->syncImages($request, $cottage, 'cottages');
+            $this->syncCoverImage($request, $cottage, 'cottages');
+            $this->syncImages($request, $cottage, 'cottages');
 
-        $cottage->save();
-        $this->syncGallery($cottage, $before);
+            $cottage->save();
+            $this->syncGallery($cottage, $before);
+        });
     }
 
     /**

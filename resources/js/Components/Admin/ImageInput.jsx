@@ -1,9 +1,24 @@
+import { srcSetFor } from '@/lib/imageSrcSet';
 import { IMAGE_ACCEPT, prepareImage } from '@/lib/prepareImage';
 import { ImagePlus, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-/** Single-image upload with preview and remove option. `maxSide` is passed to prepareImage. */
-export default function ImageInput({ label, currentUrl, file, onFile, removed, onRemove, error, aspect = 'aspect-[4/3]', maxSide }) {
+/**
+ * Single-image upload with preview and remove option. `maxSide` is passed to prepareImage.
+ * `sizes` is how wide the photo is drawn, so a saved photo loads a fitting copy rather than the full-size one.
+ */
+export default function ImageInput({
+    label,
+    currentUrl,
+    file,
+    onFile,
+    removed,
+    onRemove,
+    error,
+    aspect = 'aspect-[4/3]',
+    maxSide,
+    sizes = '(min-width: 1024px) 300px, 100vw',
+}) {
     const [preview, setPreview] = useState(null);
     const [preparing, setPreparing] = useState(false);
 
@@ -21,7 +36,7 @@ export default function ImageInput({ label, currentUrl, file, onFile, removed, o
             {label && <span className="label">{label}</span>}
             <div className={`relative overflow-hidden rounded-lg border-2 border-dashed border-stone-300 bg-stone-50 ${aspect}`}>
                 {shown ? (
-                    <img src={shown} alt="" className="h-full w-full object-cover" />
+                    <img src={shown} srcSet={preview ? undefined : srcSetFor(shown)} sizes={sizes} alt="" className="h-full w-full object-cover" />
                 ) : (
                     <div className="flex h-full flex-col items-center justify-center text-stone-400">
                         <ImagePlus className="h-8 w-8" />

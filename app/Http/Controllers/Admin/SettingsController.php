@@ -43,19 +43,21 @@ class SettingsController extends Controller
 
         $current = Setting::allValues();
 
-        foreach (Setting::IMAGE_KEYS as $key) {
-            unset($data[$key]);
-            if ($file = $request->file($key)) {
-                // These fill the whole screen, so they keep more pixels than other photos.
-                $data[$key] = $this->storeImage($file, 'site', $key, ImageOptimizer::MAX_SIDE_LARGE);
-                $this->deleteStored($current[$key] ?: null);
-            } elseif ($request->boolean('remove_'.$key)) {
-                $this->deleteStored($current[$key] ?: null);
-                $data[$key] = '';
+        $this->savingPhotos(function () use ($request, $data, $current) {
+            foreach (Setting::IMAGE_KEYS as $key) {
+                unset($data[$key]);
+                if ($file = $request->file($key)) {
+                    // These fill the whole screen, so they keep more pixels than other photos.
+                    $data[$key] = $this->storeImage($file, 'site', $key, ImageOptimizer::MAX_SIDE_LARGE);
+                    $this->discardPhoto($current[$key] ?: null);
+                } elseif ($request->boolean('remove_'.$key)) {
+                    $this->discardPhoto($current[$key] ?: null);
+                    $data[$key] = '';
+                }
             }
-        }
 
-        Setting::put(array_map(fn ($v) => $v ?? '', $data));
+            Setting::put(array_map(fn ($v) => $v ?? '', $data));
+        });
 
         return back()->with('success', 'Settings saved.');
     }

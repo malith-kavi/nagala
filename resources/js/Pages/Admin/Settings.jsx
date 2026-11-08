@@ -42,6 +42,7 @@ export default function Settings({ settings }) {
             label={label}
             aspect="aspect-[16/7]"
             maxSide={MAX_SIDE_LARGE}
+            sizes="(min-width: 768px) 420px, 100vw"
             currentUrl={settings[`${key}_url`]}
             file={data[key]}
             onFile={(f) => setData((d) => ({ ...d, [key]: f, [`remove_${key}`]: f ? false : d[`remove_${key}`] }))}

@@ -15,19 +15,31 @@ class AvailabilityService
      */
     public function unitsAvailable(Cottage $cottage, string $checkIn, string $checkOut, ?int $ignoreBookingId = null): int
     {
+        // As Y-m-d, so the database compares them with its dates correctly whatever format they came in.
+        $checkIn = CarbonImmutable::parse($checkIn)->toDateString();
+        $checkOut = CarbonImmutable::parse($checkOut)->toDateString();
+
         $bookings = $cottage->bookings()
             ->blocking()
             ->overlapping($checkIn, $checkOut)
             ->when($ignoreBookingId, fn ($q) => $q->whereKeyNot($ignoreBookingId))
             ->get(['check_in', 'check_out']);
 
-        // Peak occupancy across the nights requested, not the raw overlap count,
-        // so two back-to-back bookings don't wrongly use up two units.
-        $peak = 0;
-        foreach (CarbonPeriod::create($checkIn, CarbonImmutable::parse($checkOut)->subDay()) as $night) {
-            $occupied = $bookings->filter(
-                fn (Booking $b) => $b->check_in->lte($night) && $b->check_out->gt($night)
-            )->count();
+        // Peak occupancy across the nights requested, not the raw overlap count, so two
+        // back-to-back bookings don't wrongly use up two units. Occupancy only changes on the day
+        // a booking starts or ends, so walk those days in order rather than every night (which
+        // took seconds for a long range with a few years of bookings). On the same day a departure
+        // comes before an arrival ([day, -1] sorts before [day, 1]): it frees the unit first.
+        $changes = [];
+        foreach ($bookings as $booking) {
+            $changes[] = [max($booking->check_in->toDateString(), $checkIn), 1];
+            $changes[] = [$booking->check_out->toDateString(), -1];
+        }
+        sort($changes);
+
+        $occupied = $peak = 0;
+        foreach ($changes as [, $change]) {
+            $occupied += $change;
             $peak = max($peak, $occupied);
         }
 

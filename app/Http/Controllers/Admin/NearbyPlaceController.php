@@ -74,20 +74,22 @@ class NearbyPlaceController extends Controller
             ...$this->imageListRules(),
         ], $this->imageMessages());
 
-        $place->fill([
-            ...collect($data)->except(['cover_image', 'new_images', 'remove_images', 'image_order', 'slug'])->all(),
-            'slug' => $this->uniqueSlug(NearbyPlace::class, ($data['slug'] ?? null) ?: $data['name'], $place->id),
-            'sort_order' => $data['sort_order'] ?? 0,
-        ]);
+        $this->savingPhotos(function () use ($request, $place, $data) {
+            $place->fill([
+                ...collect($data)->except(['cover_image', 'new_images', 'remove_images', 'image_order', 'slug'])->all(),
+                'slug' => $this->uniqueSlug(NearbyPlace::class, ($data['slug'] ?? null) ?: $data['name'], $place->id),
+                'sort_order' => $data['sort_order'] ?? 0,
+            ]);
 
-        $this->syncCoverImage($request, $place, 'places');
-        $this->syncImages($request, $place, 'places');
+            $this->syncCoverImage($request, $place, 'places');
+            $this->syncImages($request, $place, 'places');
 
-        // A new or removed photo shouldn't keep the previous photographer's credit.
-        if ($place->isDirty('cover_image') && ! $place->isDirty('cover_credit')) {
-            $place->cover_credit = null;
-        }
+            // A new or removed photo shouldn't keep the previous photographer's credit.
+            if ($place->isDirty('cover_image') && ! $place->isDirty('cover_credit')) {
+                $place->cover_credit = null;
+            }
 
-        $place->save();
+            $place->save();
+        });
     }
 }

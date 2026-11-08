@@ -2,7 +2,7 @@ import DeleteButton from '@/Components/Admin/DeleteButton';
 import Field from '@/Components/Site/Field';
 import ImageWithFallback from '@/Components/Site/ImageWithFallback';
 import AdminLayout from '@/Layouts/AdminLayout';
-import { IMAGE_ACCEPT, prepareImages } from '@/lib/prepareImage';
+import { IMAGE_ACCEPT, usePrepareImages } from '@/lib/prepareImage';
 import { Link, router, useForm } from '@inertiajs/react';
 import { House, Upload } from 'lucide-react';
 import { useState } from 'react';
@@ -60,6 +60,7 @@ export default function Gallery({ images, categories }) {
         category: categories[0],
         caption: '',
     });
+    const prepareImages = usePrepareImages();
     const [preparing, setPreparing] = useState(false);
 
     const submit = (e) => {
