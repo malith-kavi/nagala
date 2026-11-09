@@ -1,4 +1,5 @@
 import { srcSetFor } from '@/lib/imageSrcSet';
+import { isStopped, useStopDownloadOnRemove } from '@/lib/photoDownloads';
 import { Leaf } from 'lucide-react';
 import { useState } from 'react';
 
@@ -35,8 +36,11 @@ export default function ImageWithFallback({
     const [plain, setPlain] = useState(false);
     const [mountedAt] = useState(() => performance.now());
     const [stage, setStage] = useState('loading'); // then 'reveal', or 'shown' when no animation is needed
+    const imgRef = useStopDownloadOnRemove();
 
     const loaded = (e) => {
+        // Its download was stopped as the visitor left the page (lib/photoDownloads): still loading.
+        if (isStopped(e.currentTarget)) return;
         const url = e.currentTarget.currentSrc || e.currentTarget.src;
         const instant = shown.has(url) || performance.now() - mountedAt < 150;
         shown.add(url);
@@ -60,6 +64,7 @@ export default function ImageWithFallback({
     const darkSrcSet = plain ? undefined : srcSetFor(darkSrc);
     const img = (
         <img
+            ref={imgRef}
             src={src}
             srcSet={srcSet}
             sizes={srcSet ? sizes : undefined}

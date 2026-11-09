@@ -1,4 +1,5 @@
 import { srcSetFor } from '@/lib/imageSrcSet';
+import { useStopDownloadOnRemove } from '@/lib/photoDownloads';
 import { Transition } from '@headlessui/react';
 import { ChevronLeft, ChevronRight, LoaderCircle, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -19,6 +20,8 @@ export default function Lightbox({ images, index, onClose, onChange }) {
     const image = images[shownIndex.current];
     const [loadedUrl, setLoadedUrl] = useState(null);
     const loaded = loadedUrl === image?.url;
+    // Stepping on past a photo that hasn't arrived stops its download, so the next one isn't kept waiting.
+    const imgRef = useStopDownloadOnRemove();
 
     useEffect(() => {
         if (!open) return;
@@ -101,6 +104,7 @@ export default function Lightbox({ images, index, onClose, onChange }) {
                         onClick={(e) => e.stopPropagation()}
                     >
                         <img
+                            ref={imgRef}
                             src={image.url}
                             srcSet={srcSetFor(image.url)}
                             sizes={srcSetFor(image.url) ? SIZES : undefined}
