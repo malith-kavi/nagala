@@ -94,7 +94,7 @@ export default function Contact() {
                 </form>
             </section>
 
-            {settings.map_embed_url && <MapEmbed url={settings.map_embed_url} address={settings.address} title="Map to Nagala Eco Cottage" />}
+            {settings.map_embed_url && <MapEmbed url={settings.map_embed_url} link={settings.map_url} address={settings.address} title="Map to Nagala Eco Cottage" />}
         </SiteLayout>
     );
 }

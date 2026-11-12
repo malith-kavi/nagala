@@ -2,12 +2,18 @@ import { srcSetFor } from '@/lib/imageSrcSet';
 import { useStopDownloadOnRemove } from '@/lib/photoDownloads';
 import { Transition } from '@headlessui/react';
 import { ChevronLeft, ChevronRight, LoaderCircle, X } from 'lucide-react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 // How wide the photo is drawn: the screen less the 16px padding each side, at most max-w-5xl (1024px).
 // Uploaded photos then come as the copy that fits (on a phone, about a quarter of the full-size photo)
 // rather than the full 2048px one, which can be up to 1 MB.
 const SIZES = '(min-width: 1056px) 1024px, calc(100vw - 32px)';
+
+// A swipe changes photo once it has gone a fifth of the screen (at most 80px), or sooner if it's a quick flick.
+const SWIPE_DISTANCE = 80;
+const FLICK_DISTANCE = 30;
+const FLICK_MS = 300;
+const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 export default function Lightbox({ images, index, onClose, onChange }) {
     const open = index !== null && index !== undefined;
@@ -22,6 +28,78 @@ export default function Lightbox({ images, index, onClose, onChange }) {
     const loaded = loadedUrl === image?.url;
     // Stepping on past a photo that hasn't arrived stops its download, so the next one isn't kept waiting.
     const imgRef = useStopDownloadOnRemove();
+
+    // Swiping on a phone: the photo follows the finger sideways, then either springs back or gives way to the next
+    // one, which glides in from the side the finger moved away from. Vertical drags and pinch-zoom are left alone.
+    const figureRef = useRef(null);
+    const swipe = useRef(null);
+    const enterFrom = useRef(0);
+
+    const moveFigure = (x, ms = 0) => {
+        const el = figureRef.current;
+        if (!el) return;
+        el.style.transition = ms ? `transform ${ms}ms ease-out` : 'none';
+        el.style.transform = x ? `translateX(${x}px)` : '';
+        if (ms) el.addEventListener('transitionend', () => (el.style.transition = ''), { once: true });
+    };
+
+    const onTouchStart = (e) => {
+        const zoomed = (window.visualViewport?.scale ?? 1) > 1.01;
+        swipe.current =
+            images.length > 1 && e.touches.length === 1 && !zoomed
+                ? { x: e.touches[0].clientX, y: e.touches[0].clientY, time: e.timeStamp, dx: 0, sideways: null }
+                : null;
+    };
+
+    const onTouchMove = (e) => {
+        const s = swipe.current;
+        if (!s) return;
+        if (e.touches.length > 1) {
+            swipe.current = null; // a second finger: pinch-zoom, not a swipe
+            moveFigure(0, 200);
+            return;
+        }
+        const dx = e.touches[0].clientX - s.x;
+        const dy = e.touches[0].clientY - s.y;
+        if (s.sideways === null) {
+            if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+            s.sideways = Math.abs(dx) > Math.abs(dy);
+        }
+        if (!s.sideways) return;
+        s.dx = dx;
+        moveFigure(dx);
+    };
+
+    const onTouchEnd = (e) => {
+        const s = swipe.current;
+        swipe.current = null;
+        if (!s?.sideways) return;
+        const distance = Math.abs(s.dx);
+        const flick = distance > FLICK_DISTANCE && e.timeStamp - s.time < FLICK_MS;
+        if (distance > Math.min(SWIPE_DISTANCE, window.innerWidth / 5) || flick) {
+            enterFrom.current = s.dx < 0 ? 1 : -1;
+            if (s.dx < 0) next();
+            else prev();
+        } else {
+            moveFigure(0, 200);
+        }
+    };
+
+    useLayoutEffect(() => {
+        const from = enterFrom.current;
+        enterFrom.current = 0;
+        const el = figureRef.current;
+        if (!el) return;
+        if (!from || reducedMotion()) {
+            // Arrows, keys, opening and closing keep the figure's own transitions.
+            el.style.transition = '';
+            el.style.transform = '';
+            return;
+        }
+        moveFigure(from * 48);
+        figureRef.current.getBoundingClientRect(); // apply the starting offset before gliding from it
+        moveFigure(0, 250);
+    }, [index]);
 
     useEffect(() => {
         if (!open) return;
@@ -60,6 +138,10 @@ export default function Lightbox({ images, index, onClose, onChange }) {
             <div
                 className="group fixed inset-0 z-[60] flex items-center justify-center bg-black/90 p-4 transition duration-300 ease-smooth data-[closed]:opacity-0"
                 onClick={onClose}
+                onTouchStart={onTouchStart}
+                onTouchMove={onTouchMove}
+                onTouchEnd={onTouchEnd}
+                onTouchCancel={onTouchEnd}
                 role="dialog"
                 aria-modal
             >
@@ -100,6 +182,7 @@ export default function Lightbox({ images, index, onClose, onChange }) {
                     // Grows gently into place as the lightbox opens; each photo fades in as you step to it.
                     <figure
                         key={image.url}
+                        ref={figureRef}
                         className="max-h-full max-w-5xl animate-fade-in transition duration-300 ease-smooth motion-safe:group-data-[closed]:scale-95"
                         onClick={(e) => e.stopPropagation()}
                     >

@@ -199,6 +199,7 @@ function Footer() {
         { name: 'instagram', url: settings.instagram_url, label: 'Instagram' },
         { name: 'youtube', url: settings.youtube_url, label: 'YouTube' },
         { name: 'whatsapp', url: settings.whatsapp ? whatsappLink(settings.whatsapp) : '', label: 'WhatsApp' },
+        { name: 'map', url: settings.map_url, label: 'Find us on Google Maps' },
     ];
 
     return (
@@ -259,6 +260,10 @@ function Footer() {
                         className="underline-offset-2 hover:underline"
                     >
                         &ldquo;Dawn chorus at Glencairnie&rdquo; by DivyaCM
+                    </a>
+                    , CC BY 4.0, edited · Forest with elephants:{' '}
+                    <a href="https://freesound.org/s/429048/" target="_blank" rel="noreferrer" className="underline-offset-2 hover:underline">
+                        &ldquo;Dawn Chorus From Himalayan Foothills&rdquo; by Calcuttan
                     </a>
                     , CC BY 4.0, edited · Night sounds:{' '}
                     <a

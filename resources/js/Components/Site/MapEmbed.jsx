@@ -17,7 +17,7 @@ function mapsPage(embedUrl) {
  * weak signal would compete with the rest of the page; until then a placeholder of the same size
  * offers to show it here or open it in Google Maps.
  */
-export default function MapEmbed({ url, address, title }) {
+export default function MapEmbed({ url, link, address, title }) {
     const [shown, setShown] = useState(false);
 
     if (shown) {
@@ -32,7 +32,7 @@ export default function MapEmbed({ url, address, title }) {
                 <button type="button" onClick={() => setShown(true)} className="btn-primary">
                     <MapPin className="h-4 w-4" /> Show map
                 </button>
-                <a href={mapsPage(url)} target="_blank" rel="noreferrer" className="btn-outline">
+                <a href={link || mapsPage(url)} target="_blank" rel="noreferrer" className="btn-outline">
                     <ExternalLink className="h-4 w-4" /> Open in Google Maps
                 </a>
             </div>

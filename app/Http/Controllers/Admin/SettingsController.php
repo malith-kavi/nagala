@@ -30,6 +30,7 @@ class SettingsController extends Controller
             'email' => ['nullable', 'email', 'max:190'],
             'address' => ['nullable', 'string', 'max:255'],
             'map_embed_url' => ['nullable', 'url', 'max:2000'],
+            'map_url' => ['nullable', 'url', 'max:255'],
             'facebook_url' => ['nullable', 'url', 'max:255'],
             'instagram_url' => ['nullable', 'url', 'max:255'],
             'youtube_url' => ['nullable', 'url', 'max:255'],

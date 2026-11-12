@@ -17,6 +17,7 @@ const text = [
     ['facebook_url', 'Facebook URL'],
     ['instagram_url', 'Instagram URL'],
     ['youtube_url', 'YouTube channel URL'],
+    ['map_url', 'Google Maps location link', 'Google Maps → Share → Copy link'],
     ['video_url', '"Watch Video" YouTube link', 'Used by the Watch Video buttons on the home page'],
 ];
 

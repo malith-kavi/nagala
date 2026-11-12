@@ -17,6 +17,7 @@ class Setting extends Model
         'email' => 'info@nagalaecocottage.lk',
         'address' => 'Nagala, Sri Lanka',
         'map_embed_url' => 'https://www.google.com/maps?q=Yapahuwa,Sri+Lanka&output=embed',
+        'map_url' => 'https://maps.app.goo.gl/HRgS4ws1QYaRLMxr9',
         'facebook_url' => '',
         'instagram_url' => '',
         'youtube_url' => '',

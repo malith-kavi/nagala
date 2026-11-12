@@ -141,7 +141,7 @@ export function Amenity({ icon: Icon, lead, tone = 'neutral', size = 'sm', as: T
 }
 
 /** Occupancy as person icons, Booking.com style: one per guest, or a single icon with "×n" past `max`. */
-export function Pax({ count, max = 4, size = 'sm', className = 'text-stone-800' }) {
+export function Pax({ count, max = 5, size = 'sm', className = 'text-stone-800' }) {
     const n = Number(count) || 0;
     const label = `${n} guest${n === 1 ? '' : 's'}`;
 

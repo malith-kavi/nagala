@@ -2,22 +2,28 @@ import { Transition } from '@headlessui/react';
 import { Bird, Moon } from 'lucide-react';
 import { useEffect, useState, useSyncExternalStore } from 'react';
 
-// Birdsong goes with the sunset hero (light mode), the cricket-and-frog chorus with the night one.
-const TRACKS = { day: '/audio/birdsong.m4a', night: '/audio/night.m4a' };
-const VOLUME = 0.6;
+// Recordings for the sunset hero (light mode) and for the night one (dark mode). Each plays for TURN seconds, then
+// crossfades into the next. They are mastered to the same loudness; `level` evens out one that is not (birdsong is
+// mono, which plays about 2.4 dB louder than the stereo ones). Sources and edits: public/audio/CREDITS.md.
+const PLAYLISTS = {
+    day: [{ src: '/audio/birdsong.m4a', level: 0.76 }, { src: '/audio/river.m4a' }, { src: '/audio/elephants.m4a' }],
+    night: [{ src: '/audio/night.m4a' }, { src: '/audio/night-paddy.m4a' }, { src: '/audio/night-river.m4a' }],
+};
+const VOLUME = 0.35; // overall loudness, 0 to 1
+const TURN = 90; // seconds each recording plays before the next takes over
+const CROSSFADE = 8; // seconds two recordings overlap when one hands over to the next
 const PREF_KEY = 'nagala:birdsong';
 const HINT_KEY = 'nagala:birdsong-hint';
 
+const AudioContextClass = typeof window !== 'undefined' ? window.AudioContext || window.webkitAudioContext : undefined;
 const darkQuery = typeof window !== 'undefined' ? window.matchMedia('(prefers-color-scheme: dark)') : null;
 const scene = () => (darkQuery?.matches ? 'night' : 'day');
 
-// One player per sound for the whole visit, so it keeps playing across Inertia page changes.
-const players = {};
-const fades = {};
-let current = null;
-let playing = false;
-let held = false;
-const listeners = new Set();
+// Fade shapes, rising from 0 to 1. A hand-over uses equal-power curves (sine in, cosine out), so the two recordings
+// together keep the same loudness all the way through; a fade on its own eases in and out.
+const HANDOVER = (t) => Math.sin((t * Math.PI) / 2);
+const EASE = (t) => (1 - Math.cos(t * Math.PI)) / 2;
+const STEPS = 40;
 
 const storage = {
     get: (key) => {
@@ -36,115 +42,236 @@ const storage = {
     },
 };
 
-const notify = () => listeners.forEach((listener) => listener());
+// Everything below lives for the whole visit, so the sound carries on across Inertia page changes.
+let ctx = null;
+const decks = [];
+const resumeAt = new Map(); // where each recording left off, so it continues rather than starting over
+const position = { day: 0, night: 0 }; // which recording of each playlist is up
+let shown = scene();
+let playing = false;
+let held = false;
+let generation = 0; // bumped by every change of what should be heard, so stale starts can tell they lost
+let turnTimer = null;
+let turnEnds = 0;
+let turnLeft = TURN * 1000;
+const listeners = new Set();
 
-function player(name) {
-    if (!players[name]) {
-        const audio = new Audio(TRACKS[name]);
-        audio.loop = true;
-        audio.preload = 'none';
-        audio.volume = 0;
-        players[name] = audio;
-    }
-    return players[name];
-}
+const notify = () => listeners.forEach((listener) => listener());
+const audible = () => playing && !held && !document.hidden;
+const currentTrack = () => PLAYLISTS[shown][position[shown]];
 
 function setPlaying(value) {
     playing = value;
     notify();
 }
 
-// Timer-driven rather than animation frames, which browsers may stall while nothing on screen moves.
-function fadeTo(name, target, ms, done) {
-    clearInterval(fades[name]);
-    const audio = player(name);
-    const from = audio.volume;
-    const start = performance.now();
-    fades[name] = setInterval(() => {
-        const t = Math.min(1, (performance.now() - start) / ms);
-        audio.volume = from + (target - from) * t;
-        if (t < 1) return;
-        clearInterval(fades[name]);
-        done?.();
-    }, 40);
+// The sound runs through the Web Audio API rather than each player's own volume, which iPhones ignore and which can
+// only be stepped from a timer. Three players: one fading in, one fading out, and one free in case the scene changes
+// halfway through a hand-over.
+function setup() {
+    if (ctx) return;
+    ctx = new AudioContextClass({ latencyHint: 'playback' });
+    const master = ctx.createGain();
+    master.gain.value = VOLUME;
+    master.connect(ctx.destination);
+    for (let i = 0; i < 3; i++) {
+        const el = new Audio();
+        el.loop = true;
+        el.preload = 'none';
+        const gain = ctx.createGain();
+        gain.gain.value = 0;
+        ctx.createMediaElementSource(el).connect(gain).connect(master);
+        decks.push({ el, gain, track: null, fade: { from: 0, to: 0, start: 0, seconds: 1, shape: EASE }, timer: null });
+    }
 }
 
-function fadeOut(name, ms) {
-    if (players[name] && !players[name].paused) fadeTo(name, 0, ms, () => players[name].pause());
+const progress = (fade, t) => (fade.to >= fade.from ? fade.shape(t) : 1 - fade.shape(1 - t));
+
+// A deck's volume at `time`, worked out from its last fade, since browsers differ on what a gain reads mid-ramp.
+function levelOf(deck, time) {
+    const { fade } = deck;
+    const t = Math.min(1, Math.max(0, (time - fade.start) / fade.seconds));
+    return fade.from + (fade.to - fade.from) * progress(fade, t);
 }
 
-// Plays the sound for the current colour scheme, fading it in.
-function resume(ms) {
-    current = scene();
-    const audio = player(current);
-    clearInterval(fades[current]);
-    audio.volume = 0;
-    return audio.play().then(() => fadeTo(current, VOLUME, ms));
+// Moves a deck's volume to `to` over `seconds`. The ramps are scheduled on the audio thread, so they stay smooth even
+// while the page is busy or in the background; `then` runs once the fade is over.
+function fade(deck, to, seconds, shape, then) {
+    const now = ctx.currentTime;
+    const from = levelOf(deck, now);
+    deck.fade = { from, to, start: now, seconds: Math.max(seconds, 0.01), shape };
+    const gain = deck.gain.gain;
+    gain.cancelScheduledValues(now);
+    gain.setValueAtTime(from, now);
+    for (let i = 1; i <= STEPS; i++) {
+        const t = i / STEPS;
+        gain.linearRampToValueAtTime(from + (to - from) * progress(deck.fade, t), now + deck.fade.seconds * t);
+    }
+    clearTimeout(deck.timer);
+    deck.timer = then ? setTimeout(then, deck.fade.seconds * 1000 + 50) : null;
+}
+
+function park(deck) {
+    clearTimeout(deck.timer);
+    if (deck.track) resumeAt.set(deck.track, deck.el.currentTime);
+    deck.el.pause();
+}
+
+// Fades `track` in and everything else out. A deck that already has the track just turns back up; otherwise the
+// quietest deck loads it. The fades start only once it is actually playing, so a slow download never leaves a gap.
+// Resolves true if this is still what should be heard by then.
+function bring(track, seconds, shape) {
+    const id = ++generation;
+    let deck = decks.find((d) => d.track === track);
+    if (!deck) {
+        const now = ctx.currentTime;
+        deck = decks.reduce((quietest, d) => (levelOf(d, now) < levelOf(quietest, now) ? d : quietest));
+        if (deck.track) park(deck);
+        deck.track = track;
+        const at = resumeAt.get(track);
+        deck.el.src = at ? `${track.src}#t=${at.toFixed(1)}` : track.src;
+    }
+    return deck.el.play().then(() => {
+        if (id !== generation) return false;
+        decks.forEach((d) => {
+            if (d === deck) fade(d, track.level ?? 1, seconds, shape);
+            else if (!d.el.paused) fade(d, 0, seconds, shape, () => park(d));
+        });
+        return true;
+    });
+}
+
+function silence(seconds) {
+    generation++;
+    pauseTurn();
+    decks.forEach((d) => {
+        if (!d.el.paused) fade(d, 0, seconds, EASE, () => park(d));
+    });
+}
+
+function schedule() {
+    clearTimeout(turnTimer);
+    turnEnds = Date.now() + turnLeft;
+    turnTimer = setTimeout(advance, turnLeft);
+}
+
+function pauseTurn() {
+    if (!turnTimer) return;
+    clearTimeout(turnTimer);
+    turnTimer = null;
+    turnLeft = Math.max(0, turnEnds - Date.now());
+}
+
+function newTurn() {
+    clearTimeout(turnTimer);
+    turnTimer = null;
+    turnLeft = TURN * 1000;
+}
+
+function playCurrent(seconds, shape) {
+    return bring(currentTrack(), seconds, shape).then(
+        (current) => current && schedule(),
+        (error) => {
+            // A recording that won't load: keep what is playing and move on at the next turn.
+            if (audible()) schedule();
+            throw error;
+        },
+    );
+}
+
+function advance() {
+    turnTimer = null;
+    if (!audible()) return;
+    position[shown] = (position[shown] + 1) % PLAYLISTS[shown].length;
+    newTurn();
+    playCurrent(CROSSFADE, HANDOVER).catch(() => {});
+}
+
+// Picks up again after a pause, e.g. a video or a background tab.
+function wake(seconds) {
+    if (!ctx) {
+        begin(seconds).catch(() => setPlaying(false));
+        return;
+    }
+    if (ctx.state !== 'running') ctx.resume().catch(() => {});
+    playCurrent(seconds, EASE).catch(() => {});
+}
+
+// Starts the sound. Browsers allow it only once the visitor has interacted with the page, so this runs again on
+// clicks, taps and key presses until it works; everything that needs that permission is set off right here.
+function begin(seconds) {
+    setup();
+    const allowed = ctx.state === 'running' || Promise.race([ctx.resume(), new Promise((r) => setTimeout(r, 1000))]);
+    // iOS lets a player start by itself later (at the next turn) only if it was started once during a tap.
+    decks.forEach((d) => {
+        if (!d.el.paused) return;
+        d.el.play().catch(() => {});
+        d.el.pause();
+    });
+    return Promise.all([allowed, playCurrent(seconds, EASE)]).then(() => {
+        if (ctx.state === 'running') return;
+        silence(0.1);
+        throw new Error('Sound is not allowed before the visitor interacts with the page');
+    });
 }
 
 function start() {
     setPlaying(true);
-    if (held) return;
-    resume(2500).catch(() => setPlaying(false));
+    if (held || document.hidden) return;
+    begin(2.5).catch(() => setPlaying(false));
 }
 
 function stop() {
     setPlaying(false);
-    Object.keys(players).forEach((name) => fadeOut(name, 800));
+    silence(1.2);
 }
 
 // Let other sound (e.g. the video modal) take over, then bring the background sound back.
 export function holdBirdsong(hold) {
     held = hold;
-    if (!playing) return;
-    if (hold) Object.keys(players).forEach((name) => fadeOut(name, 600));
-    else resume(1500).catch(() => {});
+    if (!playing || document.hidden) return;
+    if (hold) silence(0.6);
+    else wake(1.5);
 }
 
-if (typeof window !== 'undefined') {
-    // Silence a background tab; pick up again when the visitor returns.
+if (AudioContextClass) {
+    // Fade out in a background tab; pick up again when the visitor returns.
     document.addEventListener('visibilitychange', () => {
         if (!playing || held) return;
-        if (document.hidden) {
-            Object.keys(players).forEach((name) => {
-                clearInterval(fades[name]);
-                players[name].pause();
-            });
-        } else {
-            resume(1200).catch(() => {});
-        }
+        if (document.hidden) silence(0.4);
+        else wake(1.5);
     });
 
-    // Crossfade to the other sound when the device switches between light and dark mode.
+    // Crossfade to the other scene's sound when the device switches between light and dark mode.
     darkQuery.addEventListener('change', () => {
         notify();
-        if (!playing || held || document.hidden || current === scene()) return;
-        fadeOut(current, 2500);
-        resume(2500).catch(() => {});
+        if (shown === scene()) return;
+        shown = scene();
+        newTurn();
+        if (audible() && ctx) playCurrent(4, HANDOVER).catch(() => {});
     });
 
-    // The sound is on unless the visitor turned it off. Browsers only allow sound once the visitor
-    // has interacted with the page, so if the first try is refused, try again on each click, tap or
-    // key press until it plays.
-    if (storage.get(PREF_KEY) !== 'off') {
-        const events = ['pointerdown', 'pointerup', 'touchend', 'keydown'];
-        const unlisten = () => events.forEach((type) => window.removeEventListener(type, wake, true));
-        const attempt = () => {
-            if (playing || storage.get(PREF_KEY) === 'off') return unlisten();
-            if (held || document.hidden) return;
-            resume(3000)
-                .then(() => {
-                    setPlaying(true);
-                    unlisten();
-                })
-                .catch(() => {});
-        };
-        // The toggle and its hint handle their own clicks.
-        function wake(event) {
-            if (!event.target.closest?.('[data-birdsong-toggle]')) attempt();
+    // The sound is on unless the visitor turned it off. If the first try is refused, try again on each click, tap or
+    // key press until it plays. Once it plays, a tap also restarts it if the phone suspended it (lock screen, calls).
+    const interact = (event) => {
+        if (event.target.closest?.('[data-birdsong-toggle]')) return; // the toggle and its hint handle their own clicks
+        if (held || document.hidden) return;
+        if (playing) {
+            if (ctx?.state !== 'running') wake(1);
+            return;
         }
-        events.forEach((type) => window.addEventListener(type, wake, true));
-        attempt();
+        if (storage.get(PREF_KEY) === 'off') return;
+        begin(3).then(
+            () => setPlaying(true),
+            () => {},
+        );
+    };
+    ['pointerdown', 'pointerup', 'touchend', 'keydown'].forEach((type) => window.addEventListener(type, interact, true));
+    if (storage.get(PREF_KEY) !== 'off' && !document.hidden) {
+        begin(3).then(
+            () => setPlaying(true),
+            () => {},
+        );
     }
 }
 
@@ -171,6 +298,8 @@ export default function BirdsongToggle() {
         };
     }, []);
 
+    if (!AudioContextClass) return null;
+
     const toggle = () => {
         setHint(false);
         storage.set(HINT_KEY, 'seen');
@@ -184,7 +313,7 @@ export default function BirdsongToggle() {
     };
 
     const Icon = isNight ? Moon : Bird;
-    const sound = isNight ? 'night sounds' : 'birdsong';
+    const sound = isNight ? 'night sounds' : 'nature sounds';
     const label = isPlaying ? `Turn off ${sound}` : `Play ${sound}`;
 
     return (

@@ -67,9 +67,11 @@ echo "Background sounds"
 # so playback starts before the whole file has arrived.
 encoders=$(ffmpeg -hide_banner -encoders 2>/dev/null)
 [[ $encoders == *" aac_at "* ]] && encoder=aac_at || encoder=aac
-# The birdsong recording is mono (both channels identical); the night chorus is real stereo.
+# The birdsong recording is mono (both channels identical); the others are real stereo.
 ffmpeg -v error -y -i "$ORIGINALS/audio/birdsong.mp3" -ac 1 -c:a "$encoder" -b:a 56k -movflags +faststart "$AUDIO/birdsong.m4a"
-ffmpeg -v error -y -i "$ORIGINALS/audio/night.mp3" -c:a "$encoder" -b:a 64k -movflags +faststart "$AUDIO/night.m4a"
+for sound in night river elephants night-paddy night-river; do
+    ffmpeg -v error -y -i "$ORIGINALS/audio/$sound.mp3" -c:a "$encoder" -b:a 64k -movflags +faststart "$AUDIO/$sound.m4a"
+done
 
 echo
 ls -l "$IMAGES"/hero_?.avif "$IMAGES"/hero_?-2*.{avif,webp} "$IMAGES"/design/*.avif "$IMAGES"/design/cliffs-header-*.webp \
