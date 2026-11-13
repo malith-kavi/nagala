@@ -16,8 +16,8 @@ use App\Services\ImageOptimizer;
  */
 class FirstPhotoPreload
 {
-    /** Pages showing PageHeader with its default photo (Dining has a photo of its own). */
-    private const DEFAULT_HEADER_PAGES = ['Book', 'Contact', 'Gallery', 'Cottages/Index', 'Packages/Index', 'Places/Index'];
+    /** Pages showing PageHeader with its default photo. */
+    private const DEFAULT_HEADER_PAGES = ['Book', 'Contact', 'Dining', 'Gallery', 'Cottages/Index', 'Packages/Index', 'Places/Index'];
 
     /** Pages opening with a PhotoGallery, and the prop holding the cottage or place it shows (also its gallerySizes key). */
     private const GALLERY_PAGES = ['Cottages/Show' => 'cottage', 'Places/Show' => 'place'];

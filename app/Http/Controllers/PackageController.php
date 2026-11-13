@@ -18,10 +18,10 @@ class PackageController extends Controller
 
     public function show(string $slug): Response
     {
-        $package = Package::active()->where('slug', $slug)->firstOrFail();
+        $package = Package::active()->with('cottages:id')->where('slug', $slug)->firstOrFail();
 
         return Inertia::render('Packages/Show', [
-            'package' => $package,
+            'package' => $package->makeHidden('cottages'),
             'cottages' => Cottage::active()->get()->makeHidden(Cottage::CARD_HIDDEN)->filter(fn (Cottage $c) => $package->fitsCottage($c))->values(),
             'others' => Package::active()->whereKeyNot($package->id)->get()->makeHidden(Package::CARD_HIDDEN),
         ]);

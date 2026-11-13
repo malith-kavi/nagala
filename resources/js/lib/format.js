@@ -32,3 +32,13 @@ export const youtubeEmbed = (url) => {
     const match = url.match(/(?:youtu\.be\/|v=|embed\/|shorts\/)([\w-]{11})/);
     return match ? `https://www.youtube.com/embed/${match[1]}?autoplay=1&rel=0` : url;
 };
+
+/** Travel time entered in minutes, shown as "45 min", "1 hr", "1 hr 30 min" or "2 hrs 15 min". */
+export const formatDuration = (minutes) => {
+    const total = Math.round(Number(minutes) || 0);
+    const h = Math.floor(total / 60);
+    const m = total % 60;
+    const hours = h ? `${h} ${h === 1 ? 'hr' : 'hrs'}` : '';
+    const mins = m || !h ? `${m} min` : '';
+    return [hours, mins].filter(Boolean).join(' ');
+};

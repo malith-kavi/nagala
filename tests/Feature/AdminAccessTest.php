@@ -129,6 +129,44 @@ class AdminAccessTest extends TestCase
             ->assertSessionHasErrors('inclusions.1');
     }
 
+    public function test_package_can_have_its_own_check_in_and_check_out_times(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $package = ['name' => 'Day Out', 'nights' => 1, 'guests' => 2, 'price' => 9000];
+
+        $this->actingAs($admin)->post(route('admin.packages.store'), [...$package, 'check_in_time' => '9:00 AM', 'check_out_time' => '6:00 PM'])
+            ->assertRedirect(route('admin.packages.index'));
+        $own = Package::where('slug', 'day-out')->firstOrFail();
+        $this->assertSame(['9:00 AM', '6:00 PM'], [$own->checkInTime(), $own->checkOutTime()]);
+
+        // Left blank, the package follows the site-wide times.
+        $this->actingAs($admin)->put(route('admin.packages.update', $own), [...$package, 'check_in_time' => '', 'check_out_time' => ''])
+            ->assertRedirect(route('admin.packages.index'));
+        $own->refresh();
+        $this->assertNull($own->check_in_time);
+        $this->assertSame([Setting::get('check_in_time'), Setting::get('check_out_time')], [$own->checkInTime(), $own->checkOutTime()]);
+    }
+
+    public function test_package_can_be_used_in_several_cottages(): void
+    {
+        $admin = User::factory()->admin()->create();
+        [$first, $second] = Cottage::factory()->count(2)->create();
+        $package = ['name' => 'Twin Stay', 'nights' => 1, 'guests' => 2, 'price' => 17000];
+
+        $this->actingAs($admin)->post(route('admin.packages.store'), [...$package, 'cottage_ids' => [$first->id, $second->id]])
+            ->assertRedirect(route('admin.packages.index'));
+        $saved = Package::where('slug', 'twin-stay')->firstOrFail();
+        $this->assertEqualsCanonicalizing([$first->id, $second->id], $saved->cottages->modelKeys());
+
+        $this->actingAs($admin)->get(route('admin.packages.edit', $saved))
+            ->assertInertia(fn (Assert $page) => $page->where('package.cottage_ids', fn ($ids) => collect($ids)->sort()->values()->all() === [$first->id, $second->id]));
+
+        // Unticking every cottage opens the package to any cottage sized for its guests.
+        $this->actingAs($admin)->put(route('admin.packages.update', $saved), $package)
+            ->assertRedirect(route('admin.packages.index'));
+        $this->assertSame([], $saved->fresh()->cottages->modelKeys());
+    }
+
     public function test_older_typed_inclusions_can_be_kept(): void
     {
         $admin = User::factory()->admin()->create();

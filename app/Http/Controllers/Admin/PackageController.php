@@ -19,7 +19,7 @@ class PackageController extends Controller
     public function index(): Response
     {
         return Inertia::render('Admin/Packages/Index', [
-            'packages' => Package::with('cottage:id,name')->orderBy('sort_order')->orderBy('id')->get(),
+            'packages' => Package::with('cottages:id,name')->orderBy('sort_order')->orderBy('id')->get(),
         ]);
     }
 
@@ -42,7 +42,7 @@ class PackageController extends Controller
     public function edit(Package $package): Response
     {
         return Inertia::render('Admin/Packages/Form', [
-            'package' => $package,
+            'package' => $package->load('cottages:id')->append('cottage_ids')->makeHidden('cottages'),
             'cottages' => Cottage::orderBy('sort_order')->get(['id', 'name']),
             'inclusionOptions' => Package::INCLUSIONS,
         ]);
@@ -72,11 +72,14 @@ class PackageController extends Controller
             'description' => ['nullable', 'string', 'max:10000'],
             'nights' => ['required', 'integer', 'min:1', 'max:30'],
             'guests' => ['required', 'integer', 'min:1', 'max:20'],
+            'check_in_time' => ['nullable', 'string', 'max:20'],
+            'check_out_time' => ['nullable', 'string', 'max:20'],
             'inclusions' => ['nullable', 'array'],
             // Older free-text entries already on this package may stay until the admin unticks them.
             'inclusions.*' => ['string', Rule::in([...array_keys(Package::INCLUSIONS), ...($package->inclusions ?? [])])],
             'price' => ['required', 'integer', 'min:0'],
-            'cottage_id' => ['nullable', 'exists:cottages,id'],
+            'cottage_ids' => ['nullable', 'array'],
+            'cottage_ids.*' => ['integer', 'exists:cottages,id'],
             'is_active' => ['boolean'],
             'sort_order' => ['nullable', 'integer'],
             'cover_image' => ['nullable', ...$this->imageRule()],
@@ -84,7 +87,7 @@ class PackageController extends Controller
 
         $this->savingPhotos(function () use ($request, $package, $data) {
             $package->fill([
-                ...collect($data)->except(['cover_image', 'slug', 'inclusions'])->all(),
+                ...collect($data)->except(['cover_image', 'slug', 'inclusions', 'cottage_ids'])->all(),
                 'slug' => $this->uniqueSlug(Package::class, ($data['slug'] ?? null) ?: $data['name'], $package->id),
                 'inclusions' => Package::orderInclusions($data['inclusions'] ?? []),
                 'sort_order' => $data['sort_order'] ?? 0,
@@ -92,6 +95,7 @@ class PackageController extends Controller
 
             $this->syncCoverImage($request, $package, 'packages');
             $package->save();
+            $package->cottages()->sync($data['cottage_ids'] ?? []);
         });
     }
 }

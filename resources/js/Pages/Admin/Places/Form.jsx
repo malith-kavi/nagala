@@ -3,6 +3,7 @@ import ImageInput from '@/Components/Admin/ImageInput';
 import PhotoOrderInput from '@/Components/Admin/PhotoOrderInput';
 import Field from '@/Components/Site/Field';
 import AdminLayout from '@/Layouts/AdminLayout';
+import { formatDuration } from '@/lib/format';
 import { useForm } from '@inertiajs/react';
 
 export default function PlaceForm({ place }) {
@@ -56,7 +57,7 @@ export default function PlaceForm({ place }) {
                         <Field label="Distance (km)" error={errors.distance_km}>
                             <input type="number" step="0.1" min="0" className="input" value={data.distance_km} onChange={(e) => setData('distance_km', e.target.value)} />
                         </Field>
-                        <Field label="Travel time (minutes)" error={errors.travel_minutes}>
+                        <Field label="Travel time (minutes)" error={errors.travel_minutes} hint={data.travel_minutes ? `Shown as ${formatDuration(data.travel_minutes)}` : 'Enter minutes, e.g. 90'}>
                             <input type="number" min="0" className="input" value={data.travel_minutes} onChange={(e) => setData('travel_minutes', e.target.value)} />
                         </Field>
                         <Field label="Tagline" error={errors.tagline} hint="Shown instead of distance when distance is empty">

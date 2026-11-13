@@ -64,7 +64,7 @@ export default function PackageShow({ package: pkg, cottages, others }) {
                                 </li>
                             )}
                             <Amenity icon={Clock}>
-                                Check-in {settings.check_in_time} · Check-out {settings.check_out_time}
+                                Check-in {pkg.check_in_time || settings.check_in_time} · Check-out {pkg.check_out_time || settings.check_out_time}
                             </Amenity>
                         </ul>
                         {pkg.inclusion_list?.length > 0 && (

@@ -78,4 +78,16 @@ class Booking extends Model
     {
         return $this->belongsTo(Package::class);
     }
+
+    /** Check-in time for this stay: the package's own, or the site-wide one. */
+    public function checkInTime(): string
+    {
+        return $this->package?->checkInTime() ?? Setting::get('check_in_time');
+    }
+
+    /** Check-out time for this stay: the package's own, or the site-wide one. */
+    public function checkOutTime(): string
+    {
+        return $this->package?->checkOutTime() ?? Setting::get('check_out_time');
+    }
 }

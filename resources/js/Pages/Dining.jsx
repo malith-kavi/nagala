@@ -13,8 +13,6 @@ export default function Dining({ meals }) {
                 eyebrow="Full Board"
                 title="Food & Dining"
                 subtitle="Traditional Sri Lankan home cooking — breakfast, lunch and dinner are included in every full board package."
-                image="/images/samples/food-rice-curry.jpg"
-                imageClassName="object-center"
             />
 
             <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8">

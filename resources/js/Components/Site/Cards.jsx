@@ -1,7 +1,7 @@
 import { Amenity, featureIcon, isMeal, Pax } from '@/Components/Site/Amenity';
 import ImageWithFallback from '@/Components/Site/ImageWithFallback';
 import PrefetchLink from '@/Components/Site/PrefetchLink';
-import { formatLKR } from '@/lib/format';
+import { formatDuration, formatLKR } from '@/lib/format';
 import { cardSizes } from '@/lib/imageSrcSet';
 import { ArrowRight, BedDouble, Car, MapPin } from 'lucide-react';
 
@@ -80,7 +80,7 @@ export function PlaceCard({ place, className = '', sizes = cardSizes(4) }) {
                     </Amenity>
                     {place.distance_km && place.travel_minutes && (
                         <Amenity icon={Car} size="xs">
-                            {place.travel_minutes} min drive
+                            {formatDuration(place.travel_minutes)} drive
                         </Amenity>
                     )}
                 </ul>

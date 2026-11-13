@@ -10,8 +10,8 @@ import axios from 'axios';
 import { AlertTriangle, CalendarCheck, CalendarDays, Check, CheckCircle2, House, Loader2, Moon, User, Utensils } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
-// Mirrors Package::fitsCottage(): the package's linked cottage, or any cottage sized for exactly its guests.
-const fits = (pkg, cottage) => (pkg.cottage_id ? pkg.cottage_id === cottage.id : pkg.guests === cottage.max_guests);
+// Mirrors Package::fitsCottage(): one of the package's named cottages, or any cottage sized for exactly its guests.
+const fits = (pkg, cottage) => (pkg.cottage_ids?.length ? pkg.cottage_ids.includes(cottage.id) : pkg.guests === cottage.max_guests);
 
 function SummaryRow({ icon: Icon, label, children }) {
     return (

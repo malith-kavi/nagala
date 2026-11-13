@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Package extends Model
 {
@@ -42,7 +42,8 @@ class Package extends Model
 
     protected $fillable = [
         'name', 'slug', 'short_description', 'description', 'nights', 'guests',
-        'inclusions', 'price', 'cottage_id', 'cover_image', 'is_active', 'sort_order',
+        'check_in_time', 'check_out_time',
+        'inclusions', 'price', 'cover_image', 'is_active', 'sort_order',
     ];
 
     protected $appends = ['inclusion_list'];
@@ -54,8 +55,21 @@ class Package extends Model
      */
     public const CARD_HIDDEN = [
         'short_description', 'description', 'inclusions', 'cover_image',
+        'check_in_time', 'check_out_time',
         'is_active', 'sort_order', 'created_at', 'updated_at',
     ];
+
+    /** The package's own check-in time, or the site-wide one when it has none. */
+    public function checkInTime(): string
+    {
+        return $this->check_in_time ?: Setting::get('check_in_time');
+    }
+
+    /** The package's own check-out time, or the site-wide one when it has none. */
+    public function checkOutTime(): string
+    {
+        return $this->check_out_time ?: Setting::get('check_out_time');
+    }
 
     protected function casts(): array
     {
@@ -88,19 +102,31 @@ class Package extends Model
         return $query->where('is_active', true)->orderBy('sort_order')->orderBy('id');
     }
 
-    public function cottage(): BelongsTo
+    /** The cottages this package is for. None means any cottage sized for its guests. */
+    public function cottages(): BelongsToMany
     {
-        return $this->belongsTo(Cottage::class);
+        return $this->belongsToMany(Cottage::class);
     }
 
     /**
-     * Whether the package can be booked in the cottage: its linked cottage if one
-     * is set, otherwise any cottage sized for exactly the package's guests.
+     * IDs of the cottages it names, for the booking form and the admin. Not sent by default: load
+     * `cottages` first, then append('cottage_ids').
+     *
+     * @return list<int>
+     */
+    protected function cottageIds(): Attribute
+    {
+        return Attribute::get(fn () => $this->cottages->modelKeys());
+    }
+
+    /**
+     * Whether the package can be booked in the cottage: one of its named cottages if it names
+     * any, otherwise any cottage sized for exactly the package's guests.
      */
     public function fitsCottage(Cottage $cottage): bool
     {
-        return $this->cottage_id
-            ? $this->cottage_id === $cottage->id
+        return $this->cottages->isNotEmpty()
+            ? $this->cottages->contains($cottage)
             : $this->guests === $cottage->max_guests;
     }
 }

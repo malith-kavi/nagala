@@ -77,16 +77,30 @@ class BookingTest extends TestCase
         $this->assertSame(0, Booking::count());
     }
 
-    public function test_package_linked_to_a_cottage_only_fits_that_cottage(): void
+    public function test_package_linked_to_cottages_only_fits_those_cottages(): void
     {
         Mail::fake();
-        [$linked, $other] = Cottage::factory()->count(2)->create(['max_guests' => 2]);
-        $package = Package::factory()->create(['guests' => 2, 'cottage_id' => $linked->id]);
+        [$first, $second, $other] = Cottage::factory()->count(3)->create(['max_guests' => 4]);
+        $package = Package::factory()->create(['guests' => 2]);
+        $package->cottages()->attach([$first->id, $second->id]);
 
         $this->post(route('book.store'), $this->payload($other, ['package_id' => $package->id]))
-            ->assertSessionHasErrors('package_id');
-        $this->post(route('book.store'), $this->payload($linked, ['package_id' => $package->id]))
+            ->assertSessionHasErrors(['package_id' => "The {$package->name} is only available in the {$first->name} or {$second->name}."]);
+        $this->post(route('book.store'), $this->payload($first, ['package_id' => $package->id]))
             ->assertSessionHasNoErrors();
+        $this->post(route('book.store'), $this->payload($second, ['package_id' => $package->id]))
+            ->assertSessionHasNoErrors();
+    }
+
+    public function test_booking_form_knows_which_cottages_each_package_is_for(): void
+    {
+        [$first, $second] = Cottage::factory()->count(2)->create();
+        $package = Package::factory()->create();
+        $package->cottages()->attach([$first->id, $second->id]);
+
+        $this->get(route('book'))->assertInertia(fn ($page) => $page
+            ->where('packages.0.cottage_ids', [$first->id, $second->id])
+            ->missing('packages.0.cottages'));
     }
 
     public function test_cottage_cannot_be_overbooked(): void

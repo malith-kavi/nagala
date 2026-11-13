@@ -50,8 +50,8 @@ class StoreBookingRequest extends FormRequest
                 $package = $this->filled('package_id') ? Package::find($this->input('package_id')) : null;
 
                 if ($package && ! $package->fitsCottage($cottage)) {
-                    $validator->errors()->add('package_id', $package->cottage_id
-                        ? "The {$package->name} is only available in the {$package->cottage?->name}."
+                    $validator->errors()->add('package_id', $package->cottages->isNotEmpty()
+                        ? "The {$package->name} is only available in the {$package->cottages->pluck('name')->join(', ', ' or ')}."
                         : "The {$package->name} is for our {$package->guests}-guest cottages.");
                 }
             },

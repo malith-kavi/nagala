@@ -6,6 +6,7 @@ import Prose from '@/Components/Site/Prose';
 import SectionHeading from '@/Components/Site/SectionHeading';
 import SiteLayout from '@/Layouts/SiteLayout';
 import { gallerySizes } from '@/lib/bundledImages.json';
+import { formatDuration } from '@/lib/format';
 import { cardSizes } from '@/lib/imageSrcSet';
 import { ArrowLeft, CalendarDays, Car, ExternalLink, MapPin } from 'lucide-react';
 
@@ -31,7 +32,7 @@ export default function PlaceShow({ place, others }) {
                     )}
                     {place.travel_minutes && (
                         <Amenity as="span" icon={Car}>
-                            About {place.travel_minutes} min drive
+                            About {formatDuration(place.travel_minutes)} drive
                         </Amenity>
                     )}
                 </div>

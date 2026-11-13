@@ -104,7 +104,6 @@ class DatabaseSeeder extends Seeder
                 [
                     ...$package,
                     'nights' => 1,
-                    'cottage_id' => null,
                     'inclusions' => ['cottage', 'breakfast', 'lunch', 'dinner', ...$perks],
                     'sort_order' => $i,
                     'is_active' => true,

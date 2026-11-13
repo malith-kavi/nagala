@@ -1,6 +1,7 @@
 import DeleteButton from '@/Components/Admin/DeleteButton';
 import ImageWithFallback from '@/Components/Site/ImageWithFallback';
 import AdminLayout from '@/Layouts/AdminLayout';
+import { formatDuration } from '@/lib/format';
 import { Link } from '@inertiajs/react';
 import { Pencil, Plus } from 'lucide-react';
 
@@ -24,7 +25,7 @@ export default function PlacesIndex({ places }) {
                                 {!p.is_active && <span className="rounded bg-stone-200 px-2 py-0.5 text-xs text-stone-600">Hidden</span>}
                             </div>
                             <p className="mt-1 text-sm text-stone-600">
-                                {p.distance_km ? `${p.distance_km} km · ${p.travel_minutes ?? '?'} min` : p.tagline}
+                                {p.distance_km ? `${p.distance_km} km · ${p.travel_minutes ? formatDuration(p.travel_minutes) : '? min'}` : p.tagline}
                             </p>
                             <div className="mt-3 flex items-center justify-between">
                                 <Link href={route('admin.places.edit', p.id)} className="inline-flex items-center gap-1 text-sm font-medium text-forest-700 hover:underline">

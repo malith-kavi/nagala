@@ -26,7 +26,7 @@ class BookingController extends Controller
     {
         return Inertia::render('Book', [
             'cottages' => Cottage::active()->get()->makeHidden(Cottage::CARD_HIDDEN),
-            'packages' => Package::active()->get()->makeHidden(Package::CARD_HIDDEN),
+            'packages' => Package::active()->with('cottages:id')->get()->append('cottage_ids')->makeHidden([...Package::CARD_HIDDEN, 'cottages']),
             'preselect' => [
                 'cottage' => $request->query('cottage'),
                 'package' => $request->query('package'),
